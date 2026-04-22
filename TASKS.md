@@ -6,57 +6,57 @@ Her görev tamamlandığında `[x]` ile işaretlenir.
 ---
 
 ## AŞAMA 1 — İskelet ve Temel Yapı
-- [ ] **T01** — Dizin yapısını oluştur (`src/`, `assets/`)
-- [ ] **T02** — `Makefile` yaz (Linux + Windows hedefleri)
-- [ ] **T03** — `src/main.c` iskeleti: `#include`, `#define` sabitleri, enum'lar
-- [ ] **T04** — Tüm struct tanımları: `Enemy`, `Tower`, `Projectile`, `Particle`, `Wave`, `Game`
-- [ ] **T05** — `main()` game loop iskelet: pencere, 60 FPS, state switch, `BeginDrawing/EndDrawing`
+- [x] **T01** — Dizin yapısını oluştur (`src/`, `assets/`)
+- [x] **T02** — `Makefile` yaz (Linux + Windows hedefleri)
+- [x] **T03** — `src/main.c` iskeleti: `#include`, `#define` sabitleri, enum'lar
+- [x] **T04** — Tüm struct tanımları: `Enemy`, `Tower`, `Projectile`, `Particle`, `Wave`, `Game`
+- [x] **T05** — `main()` game loop iskelet: pencere, 60 FPS, state switch, `BeginDrawing/EndDrawing`
 
 ## AŞAMA 2 — Harita ve Navigasyon
-- [ ] **T06** — `InitMap()`: 20×12 grid, hardcoded yol + buildable hücreler
-- [ ] **T07** — `InitWaypoints()`: Piksel waypoint dizisi
-- [ ] **T08** — `DrawMap()`: Hücre tipine göre renkli grid çizimi
-- [ ] **T09** — Grid çizgisi toggle (`showGrid`)
-- [ ] **T10** — `GridToWorld()` / `WorldToGrid()` dönüşüm fonksiyonları
+- [x] **T06** — `InitMap()`: 20×12 grid, hardcoded yol + buildable hücreler
+- [x] **T07** — `InitWaypoints()`: Piksel waypoint dizisi
+- [x] **T08** — `DrawMap()`: Hücre tipine göre renkli grid çizimi
+- [x] **T09** — Grid çizgisi toggle (`showGrid`)
+- [x] **T10** — `GridToWorld()` / `WorldToGrid()` dönüşüm fonksiyonları
 
 ## AŞAMA 3 — Düşman Sistemi
-- [ ] **T11** — `SpawnEnemy()`: Tip tablosuna göre HP/hız/renk/yarıçap ata
-- [ ] **T12** — `UpdateEnemies()`: Waypoint takibi, `slowTimer`, son waypoint → `lives--`
-- [ ] **T13** — `DrawEnemies()`: Tip şekli (daire/üçgen/kare) + HP bar
+- [x] **T11** — `SpawnEnemy()`: Tip tablosuna göre HP/hız/renk/yarıçap ata
+- [x] **T12** — `UpdateEnemies()`: Waypoint takibi, `slowTimer`, son waypoint → `lives--`
+- [x] **T13** — `DrawEnemies()`: Tip şekli (daire/üçgen/kare) + HP bar
 
 ## AŞAMA 4 — Kule Sistemi
-- [ ] **T14** — `CanPlaceTower()` doğrulama (sınır + buildable + altın)
-- [ ] **T15** — Kule yerleştirme: Sol tık → hücreyi `CELL_TOWER` yap, altın düş
-- [ ] **T16** — `FindNearestEnemy()`: Menzil içindeki en yakın aktif düşman
-- [ ] **T17** — `UpdateTowers()`: `fireCooldown`, hedef seçimi, `CreateProjectile()`
-- [ ] **T18** — `DrawTowers()`: Kare gövde + namlu çizgisi (rotation)
-- [ ] **T19** — Kule yükseltme: Sağ tık → level++, hasar/menzil artışı
+- [x] **T14** — `CanPlaceTower()` doğrulama (sınır + buildable + altın)
+- [x] **T15** — Kule yerleştirme: Sol tık → hücreyi `CELL_TOWER` yap, altın düş
+- [x] **T16** — `FindNearestEnemy()`: Menzil içindeki en yakın aktif düşman
+- [x] **T17** — `UpdateTowers()`: `fireCooldown`, hedef seçimi, `CreateProjectile()`
+- [x] **T18** — `DrawTowers()`: Kare gövde + namlu çizgisi (rotation)
+- [x] **T19** — Kule yükseltme: Sağ tık → level++, hasar/menzil artışı
 
 ## AŞAMA 5 — Mermi ve Parçacık Sistemi
-- [ ] **T20** — `CreateProjectile()`: Homing vektör, splash bilgisi
-- [ ] **T21** — `UpdateProjectiles()`: Hareket, isabet tespiti, splash hasar
-- [ ] **T22** — `DrawProjectiles()`: Kule tipine göre renk/şekil
-- [ ] **T23** — `SpawnParticles()`: Ölüm / isabet / splash efektleri
-- [ ] **T24** — `UpdateParticles()`: Fade + shrink, `lifetime <= 0` deaktive
-- [ ] **T25** — `DrawParticles()`: Alpha-blended daire/kare
+- [x] **T20** — `CreateProjectile()`: Homing vektör, splash bilgisi
+- [x] **T21** — `UpdateProjectiles()`: Hareket, isabet tespiti, splash hasar
+- [x] **T22** — `DrawProjectiles()`: Kule tipine göre renk/şekil
+- [x] **T23** — `SpawnParticles()`: Ölüm / isabet / splash efektleri
+- [x] **T24** — `UpdateParticles()`: Fade + shrink, `lifetime <= 0` deaktive
+- [x] **T25** — `DrawParticles()`: Alpha-blended daire/kare
 
 ## AŞAMA 6 — Dalga Sistemi
-- [ ] **T26** — `InitWaves()`: 10 dalganın tanımı (tip, sayı, aralık, ön-gecikme)
-- [ ] **T27** — `UpdateWaves()`: `spawnTimer`, `SpawnEnemy()` tetikleme
-- [ ] **T28** — Dalga tamamlanma tespiti: Tüm düşmanlar öldü/geçti → `STATE_WAVE_CLEAR`
-- [ ] **T29** — Son dalga → `STATE_VICTORY`
+- [x] **T26** — `InitWaves()`: 10 dalganın tanımı (tip, sayı, aralık, ön-gecikme)
+- [x] **T27** — `UpdateWaves()`: `spawnTimer`, `SpawnEnemy()` tetikleme
+- [x] **T28** — Dalga tamamlanma tespiti: Tüm düşmanlar öldü/geçti → `STATE_WAVE_CLEAR`
+- [x] **T29** — Son dalga → `STATE_VICTORY`
 
 ## AŞAMA 7 — HUD ve Girdi
-- [ ] **T30** — `DrawHUD()`: Üst panel (can/altın/skor/dalga), kule seçim butonları
-- [ ] **T31** — Yerleştirme önizlemesi: Fare grid'deyken yeşil/kırmızı yarı saydam kare + menzil dairesi
-- [ ] **T32** — `HandleInput()`: 1/2/3 kule seçimi, sol tık yerleştir, sağ tık yükselt, P/ESC/F/G/SPACE/R
+- [x] **T30** — `DrawHUD()`: Üst panel (can/altın/skor/dalga), kule seçim butonları
+- [x] **T31** — Yerleştirme önizlemesi: Fare grid'deyken yeşil/kırmızı yarı saydam kare + menzil dairesi
+- [x] **T32** — `HandleInput()`: 1/2/3 kule seçimi, sol tık yerleştir, sağ tık yükselt, P/ESC/F/G/SPACE/R
 
 ## AŞAMA 8 — Durum Ekranları
-- [ ] **T33** — `DrawMenu()` + `UpdateMenu()`: Başlık + "Başla" butonu
-- [ ] **T34** — `DrawPauseOverlay()` + `UpdatePause()`: Karartma + Devam/Çık
-- [ ] **T35** — `DrawGameOver()`: GAME OVER + skor + Yeniden Başla
-- [ ] **T36** — `DrawVictory()`: TEBRİKLER + final skor + Yeniden Başla
-- [ ] **T37** — `InitGame()` / `RestartGame()`: Sıfırlama fonksiyonu
+- [x] **T33** — `DrawMenu()` + `UpdateMenu()`: Başlık + "Başla" butonu
+- [x] **T34** — `DrawPauseOverlay()` + `UpdatePause()`: Karartma + Devam/Çık
+- [x] **T35** — `DrawGameOver()`: GAME OVER + skor + Yeniden Başla
+- [x] **T36** — `DrawVictory()`: TEBRİKLER + final skor + Yeniden Başla
+- [x] **T37** — `InitGame()` / `RestartGame()`: Sıfırlama fonksiyonu
 
 ## AŞAMA 9 — Derleme ve Test
 - [ ] **T38** — `Makefile` doğrula, `make` ile temiz derleme
