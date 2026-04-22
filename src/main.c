@@ -143,7 +143,7 @@ typedef struct {
     int       spawnedCount;
     float     preDelay;
     bool      started;
-} Wave;
+} GameWave;
 
 typedef struct {
     int     grid[GRID_ROWS][GRID_COLS];
@@ -154,7 +154,7 @@ typedef struct {
     Tower       towers[MAX_TOWERS];
     Projectile  projectiles[MAX_PROJECTILES];
     Particle    particles[MAX_PARTICLES];
-    Wave        waves[MAX_WAVES];
+    GameWave waves[MAX_WAVES];
 
     int   currentWave;
     int   totalWaves;
@@ -361,7 +361,7 @@ void InitWaypoints(Game *g) {
 
 /* Progresif zorlukla 10 dalganın tip/sayı/aralık parametrelerini atar. */
 void InitWaves(Game *g) {
-    Wave w[MAX_WAVES] = {
+    GameWave w[MAX_WAVES] = {
         /* type,         count, interval, timer, spawned, preDelay, started */
         {ENEMY_NORMAL,   8,  1.2f, 0, 0, 2.0f, false},
         {ENEMY_NORMAL,  10,  1.0f, 0, 0, 2.0f, false},
@@ -673,7 +673,7 @@ void UpdateParticles(Game *g, float dt) {
 void UpdateWaves(Game *g, float dt) {
     if (!g->waveActive || g->currentWave >= g->totalWaves) return;
 
-    Wave *w = &g->waves[g->currentWave];
+    GameWave *w = &g->waves[g->currentWave];
 
     /* Ön gecikme */
     if (!w->started) {

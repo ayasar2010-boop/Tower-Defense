@@ -1,20 +1,26 @@
-CC      = gcc
-SRC     = src/main.c
-TARGET  = game
-CFLAGS  = -std=c99 -Wall -Wextra -O2
+SRC    = src/main.c
+CFLAGS = -std=c99 -Wall -O2
 
-# Platform tespiti
+# Windows (MSYS2 MinGW64)
 ifeq ($(OS),Windows_NT)
-    LIBS    = -lraylib -lopengl32 -lgdi32 -lwinmm
-    TARGET  = game.exe
+CC      = C:/msys64/mingw64/bin/gcc.exe
+INCS    = -IC:/msys64/mingw64/include
+LIBDIR  = -LC:/msys64/mingw64/lib
+LIBS    = -lraylib -lopengl32 -lgdi32 -lwinmm
+TARGET  = game.exe
 else
-    LIBS    = -lraylib -lm -lpthread -ldl -lrt
+# Linux / macOS
+CC      = gcc
+INCS    =
+LIBDIR  =
+LIBS    = -lraylib -lm -lpthread -ldl -lrt
+TARGET  = game
 endif
 
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-	$(CC) $(CFLAGS) $(SRC) $(LIBS) -o $(TARGET)
+	$(CC) $(CFLAGS) $(INCS) $(SRC) $(LIBDIR) $(LIBS) -o $(TARGET)
 
 clean:
 ifeq ($(OS),Windows_NT)
@@ -24,10 +30,6 @@ else
 endif
 
 run: $(TARGET)
-ifeq ($(OS),Windows_NT)
-	./$(TARGET).exe
-else
 	./$(TARGET)
-endif
 
 .PHONY: all clean run
