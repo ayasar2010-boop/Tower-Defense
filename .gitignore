@@ -1,27 +1,36 @@
-# Derlenmiş çıktılar
+# ─── Build çıktısı ───────────────────────────────────────────────────────────
+release/
+
+# Root'ta kalan eski build artıkları
 game
 game.exe
 *.o
 *.obj
 *.out
-*.exe
-
-# Raylib / GCC geçici dosyaları
 *.d
 *.a
 *.so
-*.dll
 *.lib
+libraylib.dll
+glfw3.dll
 
-# Assets - büyük ikili dosyalar (isteğe bağlı)
+# ─── Log / geçici dosyalar ───────────────────────────────────────────────────
+*.log
+build_log.txt
+build_err.txt
+build_out.txt
+out.txt
+err.txt
+build.bat
+
+# ─── Assets — büyük ikili dosyalar (isteğe bağlı) ────────────────────────────
 assets/*.wav
 assets/*.mp3
 assets/*.ogg
 assets/*.png
 assets/*.jpg
 
-# IDE / Editor
-.vscode/
+# ─── IDE / Editor ────────────────────────────────────────────────────────────
 .idea/
 *.sublime-project
 *.sublime-workspace
@@ -29,10 +38,7 @@ assets/*.jpg
 *.swo
 *~
 
-# OS dosyaları
+# ─── OS dosyaları ────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# Log dosyaları
-*.log

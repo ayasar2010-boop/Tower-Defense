@@ -84,3 +84,65 @@ Her görev tamamlandığında `[x]` ile işaretlenir.
 | 8 — Ekranlar     | 5  | 5 |
 | 9 — Test         | 3  | 3 |
 | **Toplam**       | **40** | **40** |
+
+## Durum Özeti (Aşama 10)
+
+| Aşama                | Toplam | Tamamlanan |
+|----------------------|--------|------------|
+| 10 — VS Code Ortamı  | 6      | 6          |
+
+## AŞAMA 10 — VS CODE GAME STUDIO ORTAMI
+
+- [x] **T46** — `.vscode/extensions.json`: C/C++ Pack, CMake/Makefile Tools, Better C++ Syntax, Shader dil desteği, Asset önizleyici, Hex Editor, GitLens, TODO-Tree önerileri
+- [x] **T47** — `.vscode/settings.json`: Clang-Format kuralları, build artifact exclude listesi, Raylib IntelliSense yolları (`C:/msys64/mingw64/include`), GLSL dosya ilişkilendirme, Git Bash terminali
+- [x] **T48** — `.vscode/c_cpp_properties.json`: MSYS2 MinGW64 derleyici yolu, Raylib include yolu, C99 standardı, `PLATFORM_DESKTOP` define
+- [x] **T49** — `.vscode/tasks.json`: `make` (default build, Ctrl+Shift+B), `make clean`, `make run`, `Rebuild (clean+build)` görevleri + gcc problem matcher
+- [x] **T50** — `.vscode/launch.json`: F5 → GDB debug (`game.exe`), `preLaunchTask: "Build: make"`, pretty-printing, debug'suz çalıştır konfigürasyonu
+- [x] **T51** — `CLAUDE.md` güncellendi: Çok dosyalı mimari (`homecity`, `siege`, `dungeon`), VS Code kısayolları, modül bağımlılıkları, kod kuralları eklendi
+
+---
+
+## AŞAMA 11 — TD-RPG-STRATEGY HYBRID (Genişletme Planı)
+- [x] **T41** — **Home City & Reinforcement:** `homecity.h/c` modüllerini oluştur. Medeniyet Seviyesi (CivLevel), Sevkiyat Puanı (ShipmentPoints), Refah Puanı (Prosperity) sistemini entegre et. Kart/menü UI ile takviye (Archers, Wood, Tech Upgrade) sistemini kodla.
+- [x] **T42** — **Isometric View & Siege Mechanics:** Koordinat sistemini izometrik matrise çevir. `GetIsometricMousePos()` fonksiyonunu ekle. Dev sur yapılarını (Wall Segment) çizim/harita algoritmalarına entegre et. Unit Stations (Archer/Cannon sur üstü, Cavalry sur arkası) yerleştirme mantığını kur. "Kıta" (Horde/Battalion) tabanlı düşman mantığını kodla.
+- [x] **T43** — **Base Building (Waves Interval):** `PREP_PHASE` durumu ekle. Haritaya Barracks, Market, Barricade gibi binaların inşa edilmesini sağlayan UI ve yerleştirme sistemini yap.
+- [x] **T44** — **Dungeon Mode (RPG/Farming):** `STATE_DUNGEON` durumunu ekle. Hero'nun (WASD/Mouse ile) serbest hareket ettiği, Dungeon düşmanlarının spawn olduğu mantığı yaz. Loot düşürme (Pot, Rune, Gear) ve Envanter entegrasyonunu yap.
+- [x] **T45** — **Data Flow & Documentation:** Veri akış diyagramlarını oluştur/belgele, teknik entegrasyonların sorunsuz çalıştığını (Home City → TD Map → Dungeon arası geçişler) doğrula ve test et.
+
+---
+
+## AŞAMA 12 — HERO RPG SİSTEMİ (guidance.md §3)
+
+- [x] **T52** — **Hero Sınıf Seçimi:** Menüye Warrior/Mage/Archer seçim ekranı ekle. `HeroClass` enum + sınıfa göre başlangıç stat tablosu (HP/Mana/Atk/Def/Speed). Seçim ana menüden LOADING'e geçişte kalıcı olsun.
+- [x] **T53** — **Gelişmiş Hero Struct:** Mevcut `Hero`'yu genişlet: `HeroClass`, `HeroState`, `HeroStats` (base + current), XP/Level sistemi (`AddXP`, `xpToNext`), `comboCount/comboTimer`, `invulnTimer`, `bodyAngle`, animasyon alanları.
+- [ ] **T54** — **Skill Sistemi (Q/W/E/R):** `Skill` struct tanımla. Her sınıf için 4 aktif + 2 pasif skill. Q/W/E/R ile kullanım, mana kontrolü, cooldown, AoE/single-target ayrımı. Skill cooldown overlay HUD'da göster.
+- [ ] **T55** — **Boss Sistemi:** `Boss` struct + `BossPhase` + `BossState` state machine. Her 10 dalgada boss wave. 3 faz geçişi (HP %60/%25). Özel saldırılar (radyal mermi, meteor, minion çağırma). Boss HP bar + nabız/glow çizimi.
+
+## AŞAMA 13 — GÖRSEL EFEKTLERİN GELİŞTİRİLMESİ (guidance.md §8)
+
+- [x] **T56** — **ScreenShake Sistemi:** `ScreenShake` struct. `intensity/decay/offset`. Boss faz geçişi, büyük patlama, level up tetikleyicileri. `BeginDrawing` öncesi kamera offset'e uygula.
+- [x] **T57** — **Floating Damage Numbers:** `FloatingText` struct (MAX 40). Hasar, kritik, iyileşme sayıları yukarı kayarak solar. Kritik → sarı + büyük font + "!". Tower'dan ve Hero'dan tetiklenir.
+- [x] **T58** — **Mermi Trail Efekti:** `Projectile` struct'a `trailPositions[8]` + `trailIndex` ekle. Her frame geçmiş pozisyon kaydet. Azalan opaklık ve boyutla kuyruk çiz.
+
+## AŞAMA 14 — GAMEPLAY DERİNLİĞİ (guidance.md §9, §7, §4)
+
+- [ ] **T59** — **Kule Sinerji Sistemi:** Kule yerleştirilirken 120px içindeki diğer kuleleri tara. Tip çiftlerine göre bonus uygula (BASIC+BASIC → +15% atış hızı vb.). Sinerji çiftleri arası soluk mavi çizgi çiz.
+- [ ] **T60** — **Harita Etkileşimleri:** `Interactable` struct + `InteractableType` enum. Hazine sandığı, sunak, iyileştirme kuyusu. Hero yaklaştığında tooltip, E ile etkileşim. Haritaya sabit konumlarda yerleştir.
+- [ ] **T61** — **Gelişmiş Envanter UI:** Mevcut `Inventory`'yi 12 slot grid'e yükselt. `Item` struct (tip, adet, hotkey). `I` tuşu ile panel aç/kapat. Shift+1-6 hızlı kullanım. Slot tooltip.
+
+## AŞAMA 15 — GENİŞLETİLMİŞ İÇERİK (guidance.md §13, §10, §12)
+
+- [x] **T62** — **20 Dalga Sistemi + Boss Dalgaları:** `InitWaves`'i 20 dalgaya genişlet (guidance §13.2 tablosu). Dalga 10 ve 20'de boss wave flag. `isBossWave`, `enemyHpMultiplier`, `waveName` alanlarını Wave struct'a ekle.
+- [x] **T63** — **Kamera Sistemi:** `GameCamera` struct. Raylib `Camera2D`. Scroll ile zoom (0.5×–2.0×). H tuşu hero takip toggle. Tüm oyun çizimi `BeginMode2D/EndMode2D` içine al.
+- [x] **T64** — **Ses Sistemi Stub:** `AudioManager` struct. `InitAudioDevice()`, `SFXType` enum. Ses dosyası yoksa sessiz devam et. Kule atış, ölüm, level up, dalga başlangıcı hookları.
+
+## Durum Özeti (Aşamalar 12-15)
+
+| Aşama                        | Toplam | Tamamlanan |
+|------------------------------|--------|------------|
+| 12 — Hero RPG Sistemi        | 4      | 0          |
+| 13 — Görsel Efektler         | 3      | 0          |
+| 14 — Gameplay Derinliği      | 3      | 0          |
+| 15 — Genişletilmiş İçerik    | 3      | 2          |
+| **Toplam (yeni)**            | **13** | **8**      |
+

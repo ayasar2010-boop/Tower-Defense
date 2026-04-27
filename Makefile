@@ -1,43 +1,45 @@
-SRC    = src/main.c
-CFLAGS = -std=c99 -Wall -O2
+SRC      = $(wildcard src/*.c)
+CFLAGS   = -std=c99 -Wall -O2 -pipe
+RELEASE  = release
 
-# Windows (MSYS2 MinGW64)
 ifeq ($(OS),Windows_NT)
 CC       = C:/msys64/mingw64/bin/gcc.exe
 INCS     = -IC:/msys64/mingw64/include
 LIBDIR   = -LC:/msys64/mingw64/lib
 LIBS     = -lraylib -lopengl32 -lgdi32 -lwinmm
-TARGET   = game.exe
+TARGET   = $(RELEASE)/game.exe
 MSYS_BIN = C:/msys64/mingw64/bin
 else
-# Linux / macOS
-CC      = gcc
-INCS    =
-LIBDIR  =
-LIBS    = -lraylib -lm -lpthread -ldl -lrt
-TARGET  = game
+CC       = gcc
+INCS     =
+LIBDIR   =
+LIBS     = -lraylib -lm -lpthread -ldl -lrt
+TARGET   = $(RELEASE)/game
 endif
 
-all: $(TARGET) dlls
+all: $(RELEASE) $(TARGET) dlls assets
+
+$(RELEASE):
+	@mkdir -p $(RELEASE)
 
 $(TARGET): $(SRC)
 	$(CC) $(CFLAGS) $(INCS) $(SRC) $(LIBDIR) $(LIBS) -o $(TARGET)
 
-# Windows: gerekli DLL'leri exe yanına kopyala
 dlls:
 ifeq ($(OS),Windows_NT)
-	@if not exist libraylib.dll copy "$(MSYS_BIN)\libraylib.dll" . >NUL
-	@if not exist glfw3.dll     copy "$(MSYS_BIN)\glfw3.dll"     . >NUL
+	@[ -f $(RELEASE)/libraylib.dll ] || cp "$(MSYS_BIN)/libraylib.dll" $(RELEASE)/
+	@[ -f $(RELEASE)/glfw3.dll ]     || cp "$(MSYS_BIN)/glfw3.dll"     $(RELEASE)/
 endif
 
+assets:
+	@if [ -d assets ] && [ "$$(ls -A assets 2>/dev/null)" ]; then \
+		mkdir -p $(RELEASE)/assets && cp -r assets/. $(RELEASE)/assets/; \
+	fi
+
 clean:
-ifeq ($(OS),Windows_NT)
-	-del /f $(TARGET) libraylib.dll glfw3.dll 2>NUL
-else
-	rm -f $(TARGET)
-endif
+	rm -rf $(RELEASE)
 
 run: all
 	./$(TARGET)
 
-.PHONY: all dlls clean run
+.PHONY: all dlls assets clean run
