@@ -1,0 +1,34 @@
+{
+  "configurations": [
+    {
+      "name": "Windows (MSYS2 MinGW64)",
+      "includePath": [
+        "${workspaceFolder}/src",
+        "C:/msys64/mingw64/include",
+        "C:/msys64/mingw64/include/raylib"
+      ],
+      "defines": [
+        "_DEBUG",
+        "UNICODE",
+        "_UNICODE",
+        "PLATFORM_DESKTOP"
+      ],
+      "compilerPath": "C:/msys64/mingw64/bin/gcc.exe",
+      "cStandard": "c99",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "windows-gcc-x64",
+      "compilerArgs": [
+        "-Wall",
+        "-std=c99"
+      ],
+      "browse": {
+        "path": [
+          "${workspaceFolder}/src",
+          "C:/msys64/mingw64/include"
+        ],
+        "limitSymbolsToIncludedHeaders": true
+      }
+    }
+  ],
+  "version": 4
+}

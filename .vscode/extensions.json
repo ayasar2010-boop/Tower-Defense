@@ -1,0 +1,33 @@
+{
+  "recommendations": [
+    // C/C++ temel araçlar
+    "ms-vscode.cpptools",
+    "ms-vscode.cpptools-extension-pack",
+    "ms-vscode.cmake-tools",
+    "ms-vscode.makefile-tools",
+
+    // Sözdizimi & kod kalitesi
+    "jeff-hykin.better-cpp-syntax",
+    "llvm-vs-code-extensions.vscode-clangd",
+
+    // Shader dilleri (GLSL/HLSL — Raylib shader geliştirme için)
+    "slevesque.shader",
+    "cadenas.vscode-glsllint",
+
+    // Asset önizleme araçları
+    "Tyriar.vscode-sprite-preview",
+    "kisstkondoros.vscode-gutter-preview",
+    "stef-k.font-preview",
+
+    // Binary/Hex Editor
+    "ms-vscode.hexeditor",
+
+    // Git & proje yönetimi
+    "eamodio.gitlens",
+    "gruntfuggly.todo-tree",
+
+    // Genel kalite araçları
+    "editorconfig.editorconfig",
+    "streetsidesoftware.code-spell-checker"
+  ]
+}

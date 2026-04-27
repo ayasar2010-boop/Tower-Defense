@@ -1,0 +1,91 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build: make",
+      "type": "shell",
+      "command": "TEMP='C:/Users/ali.erdogan/AppData/Local/Temp' TMP='C:/Users/ali.erdogan/AppData/Local/Temp' /usr/bin/make OS=Windows_NT",
+      "args": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "shell": {
+          "executable": "C:/msys64/usr/bin/bash.exe",
+          "args": ["-c"]
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": {
+        "owner": "gcc",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    },
+    {
+      "label": "Build: make clean",
+      "type": "shell",
+      "command": "/usr/bin/make OS=Windows_NT clean",
+      "args": [],
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "shell": {
+          "executable": "C:/msys64/usr/bin/bash.exe",
+          "args": ["-c"]
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run: make run",
+      "type": "shell",
+      "command": "TEMP='C:/Users/ali.erdogan/AppData/Local/Temp' TMP='C:/Users/ali.erdogan/AppData/Local/Temp' /usr/bin/make OS=Windows_NT run",
+      "args": [],
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "shell": {
+          "executable": "C:/msys64/usr/bin/bash.exe",
+          "args": ["-c"]
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Rebuild: clean + build",
+      "dependsOn": ["Build: make clean", "Build: make"],
+      "dependsOrder": "sequence",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}
