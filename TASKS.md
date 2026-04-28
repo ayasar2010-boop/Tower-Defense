@@ -148,7 +148,7 @@ Her görev tamamlandığında `[x]` ile işaretlenir.
 
 ## AŞAMA 16 — RTS MEKANİKLERİ, KAMERA & FOG OF WAR (UI_DESIGN.md)
 
-- [ ] **T65** — **RTS Seçim Kutusu:** Sol tık sürükleme ile dikdörtgen seçim kutusu. Kutu içindeki dost birimler `selected = true`. Seçili birimlere beyaz halka.
+- [x] **T65** — **RTS Seçim Kutusu:** Sol tık sürükleme ile dikdörtgen seçim kutusu. Kutu içindeki dost birimler `selected = true`. Seçili birimlere beyaz halka.
 - [x] **T66** — **ESC ile Kule/Bina İptali:** ESC önce kule/bina seçimini iptal eder, yoksa duraklatır. 1/2/3 kule, 4/5/6 bina seçimi.
 - [x] **T67** — **Kırsal Alan Binaları:** `CELL_RURAL` hücre tipi. Kışla/Pazar/Town Center binaları 4/5/6 tuşlarıyla rural alanlara kurulabilir.
 - [x] **T68** — **Büyük Harita + Köy:** 120×80 grid (CELL_SIZE=12). S-kıvrımlı uzun yol, sonunda 6×6 köy bloğu. `CELL_VILLAGE` hücre tipi + mini ev çizimi.
@@ -157,5 +157,5 @@ Her görev tamamlandığında `[x]` ile işaretlenir.
 
 | Aşama                          | Toplam | Tamamlanan |
 |--------------------------------|--------|------------|
-| 16 — RTS/Kamera/Fog            | 6      | 5          |
+| 16 — RTS/Kamera/Fog            | 6      | 6          |
 
