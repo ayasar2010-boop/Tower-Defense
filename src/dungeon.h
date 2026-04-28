@@ -52,11 +52,25 @@ typedef struct {
 /* Envanter */
 typedef enum { LOOT_POTION, LOOT_RUNE, LOOT_GEAR, LOOT_GOLD } LootType;
 
+typedef enum {
+    ITEM_NONE = 0,
+    ITEM_POTION,
+    ITEM_RUNE,
+    ITEM_GEAR
+} ItemType;
+
 typedef struct {
-    int potions;
-    int runes;
-    int gear;
+    ItemType type;
+    int amount;
+    char name[32];
+} Item;
+
+#define MAX_INVENTORY_SLOTS 12
+
+typedef struct {
+    Item slots[MAX_INVENTORY_SLOTS];
     int bonusGold;  /* Dungeon'dan kazanılan altın TD haritasına taşınır */
+    bool isOpen;
 } Inventory;
 
 typedef struct {
@@ -65,6 +79,24 @@ typedef struct {
     int      value;
     bool     active;
 } DungeonLoot;
+
+#define MAX_SKILLS 8
+
+typedef struct {
+    char name[32];
+    char description[64];
+    int manaCost;
+    float cooldown;
+    float currentCooldown;
+    float duration;
+    float value;
+    float radius;
+    int level;
+    int maxLevel;
+    bool isPassive;
+    bool unlocked;
+    Color color;
+} Skill;
 
 /* T53 — Genişletilmiş Hero struct */
 typedef struct {
@@ -88,9 +120,10 @@ typedef struct {
     Vector2 targetPos;
     bool    isMoving;
 
-    /* MOBA — Q/W/E/R skill sistemi (0=Q,1=W,2=E,3=R) */
-    float skillCooldown[4];
-    float skillMaxCD[4];
+    /* MOBA — Yetenek Sistemi */
+    Skill skills[MAX_SKILLS];
+    int skillCount;
+    int selectedSkill;
 
     /* Q kılıç sallama koni görseli */
     float swingTimer;
@@ -137,6 +170,22 @@ typedef struct {
 /* Zemin tile haritası */
 typedef enum { DTILE_WALL = 0, DTILE_FLOOR = 1, DTILE_DOOR = 2 } DungeonTile;
 
+#define MAX_INTERACTABLES 10
+
+typedef enum {
+    INTERACTABLE_CHEST,
+    INTERACTABLE_SHRINE,
+    INTERACTABLE_WELL
+} InteractableType;
+
+typedef struct {
+    Vector2 position;
+    InteractableType type;
+    bool active;
+    bool used;
+    char tooltip[32];
+} Interactable;
+
 typedef struct {
     DungeonTile    tiles[DUNGEON_ROWS][DUNGEON_COLS];
     DungeonRoom    rooms[MAX_ROOMS];
@@ -144,6 +193,8 @@ typedef struct {
     DungeonMob     mobs[MAX_DUNGEON_MOBS];
     DungeonLoot    loots[MAX_LOOT_ITEMS];
     AllyUnit       allies[MAX_ALLY_UNITS];
+    Interactable   interactables[MAX_INTERACTABLES];
+    int            interactableCount;
     Inventory      inventory;
     float          allyCooldown;   /* R skill global cooldown */
     bool           isDungeonActive;

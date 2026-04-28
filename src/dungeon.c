@@ -104,29 +104,43 @@ void InitHero(Hero *hero, HeroClass cls) {
     hero->isMoving    = false;
     hero->targetPos   = (Vector2){0, 0};
 
-    /* Q/W/E/R max cooldownlar (saniye) */
-    hero->skillMaxCD[0] = 4.0f;   /* Q — Kılıç Darbesi */
-    hero->skillMaxCD[1] = 8.0f;   /* W — Komuta Çığlığı */
-    hero->skillMaxCD[2] = 12.0f;  /* E — Sis Perdesi */
-    hero->skillMaxCD[3] = ALLY_CALL_COOLDOWN; /* R — Destek Çağır */
-    for (int i = 0; i < 4; i++) hero->skillCooldown[i] = 0.0f;
+    hero->skillCount = 4;
+    hero->selectedSkill = -1;
 
     switch (cls) {
         case HERO_WARRIOR:
             hero->stats = (HeroStats){700,700, 80, 80,2.0f, 40,20,100, 35, 1.5f, 0.10f,2.0f};
             hero->bodyColor   = SKYBLUE;
             hero->accentColor = (Color){200, 240, 255, 255};
+            {
+                Skill *s = &hero->skills[0]; strncpy(s->name, "Q: Kilic Darbesi", 31); s->name[31]='\0'; s->manaCost=10; s->cooldown=4.0f; s->currentCooldown=0; s->value=1.5f; s->radius=80.0f; s->color=ORANGE;
+                s = &hero->skills[1]; strncpy(s->name, "W: Komuta Cigligi", 31); s->name[31]='\0'; s->manaCost=20; s->cooldown=8.0f; s->currentCooldown=0; s->value=0.20f; s->radius=0.0f; s->color=GREEN;
+                s = &hero->skills[2]; strncpy(s->name, "E: Sis Perdesi", 31); s->name[31]='\0'; s->manaCost=30; s->cooldown=12.0f; s->currentCooldown=0; s->value=0.60f; s->radius=100.0f; s->color=SKYBLUE;
+                s = &hero->skills[3]; strncpy(s->name, "R: Destek Cagir", 31); s->name[31]='\0'; s->manaCost=50; s->cooldown=ALLY_CALL_COOLDOWN; s->currentCooldown=0; s->value=0.0f; s->radius=0.0f; s->color=GOLD;
+            }
             break;
         case HERO_MAGE:
             hero->stats = (HeroStats){350,350,300,300,8.0f, 15, 5, 90,120, 0.8f, 0.05f,3.0f};
             hero->bodyColor   = VIOLET;
             hero->accentColor = (Color){210, 180, 255, 255};
+            {
+                Skill *s = &hero->skills[0]; strncpy(s->name, "Q: Ates Dalgasi", 31); s->name[31]='\0'; s->manaCost=25; s->cooldown=3.0f; s->currentCooldown=0; s->value=2.0f; s->radius=90.0f; s->color=ORANGE;
+                s = &hero->skills[1]; strncpy(s->name, "W: Mana Kalkani", 31); s->name[31]='\0'; s->manaCost=50; s->cooldown=10.0f; s->currentCooldown=0; s->value=0.30f; s->radius=0.0f; s->color=GREEN;
+                s = &hero->skills[2]; strncpy(s->name, "E: Buz Patlamasi", 31); s->name[31]='\0'; s->manaCost=60; s->cooldown=15.0f; s->currentCooldown=0; s->value=0.80f; s->radius=150.0f; s->color=SKYBLUE;
+                s = &hero->skills[3]; strncpy(s->name, "R: Meteor", 31); s->name[31]='\0'; s->manaCost=100; s->cooldown=60.0f; s->currentCooldown=0; s->value=3.0f; s->radius=200.0f; s->color=GOLD;
+            }
             break;
         case HERO_ARCHER:
         default:
             hero->stats = (HeroStats){450,450,150,150,4.0f, 30,10,130,160, 2.0f, 0.20f,1.8f};
             hero->bodyColor   = LIME;
             hero->accentColor = (Color){180, 255, 150, 255};
+            {
+                Skill *s = &hero->skills[0]; strncpy(s->name, "Q: Ok Yelpazesi", 31); s->name[31]='\0'; s->manaCost=15; s->cooldown=2.0f; s->currentCooldown=0; s->value=1.8f; s->radius=120.0f; s->color=ORANGE;
+                s = &hero->skills[1]; strncpy(s->name, "W: Ceviklik", 31); s->name[31]='\0'; s->manaCost=20; s->cooldown=8.0f; s->currentCooldown=0; s->value=0.15f; s->radius=0.0f; s->color=GREEN;
+                s = &hero->skills[2]; strncpy(s->name, "E: Zehir Bulutu", 31); s->name[31]='\0'; s->manaCost=30; s->cooldown=10.0f; s->currentCooldown=0; s->value=0.50f; s->radius=80.0f; s->color=SKYBLUE;
+                s = &hero->skills[3]; strncpy(s->name, "R: Ok Yagmuru", 31); s->name[31]='\0'; s->manaCost=80; s->cooldown=45.0f; s->currentCooldown=0; s->value=2.5f; s->radius=250.0f; s->color=GOLD;
+            }
             break;
     }
 }
@@ -155,6 +169,24 @@ void InitDungeon(DungeonMode *dungeon, Hero *hero) {
     for (int i = 0; i < dungeon->roomCount; i++)
         PopulateRoom(dungeon, i);
 
+    dungeon->interactableCount = 0;
+    /* 1. odayı atla, diğerlerine rastgele etkileşim nesneleri koy */
+    for (int i = 1; i < dungeon->roomCount && dungeon->interactableCount < MAX_INTERACTABLES; i++) {
+        if (GetRandomValue(0, 100) < 60) { /* %60 ihtimalle */
+            Interactable *itr = &dungeon->interactables[dungeon->interactableCount++];
+            itr->active = true;
+            itr->used   = false;
+            itr->type   = GetRandomValue(0, 2); /* CHEST=0, SHRINE=1, WELL=2 */
+            itr->position = (Vector2){
+                (float)(dungeon->rooms[i].x + dungeon->rooms[i].w / 2) * DUNGEON_TILE_SIZE,
+                (float)(dungeon->rooms[i].y + dungeon->rooms[i].h / 2) * DUNGEON_TILE_SIZE
+            };
+            if (itr->type == INTERACTABLE_CHEST) strncpy(itr->tooltip, "[E] Hazine Sandigi", 31);
+            else if (itr->type == INTERACTABLE_SHRINE) strncpy(itr->tooltip, "[E] Guc Sunagi", 31);
+            else if (itr->type == INTERACTABLE_WELL) strncpy(itr->tooltip, "[E] Iyilesme Kuyusu", 31);
+        }
+    }
+
     /* Hero sınıfı korunuyor, sadece pozisyon sıfırlanıyor */
     hero->position    = (Vector2){
         (float)(dungeon->rooms[0].x * DUNGEON_TILE_SIZE + DUNGEON_TILE_SIZE),
@@ -165,6 +197,27 @@ void InitDungeon(DungeonMode *dungeon, Hero *hero) {
     hero->state       = HERO_STATE_IDLE;
 
     dungeon->isDungeonActive = true;
+}
+
+/* ── Yardımcı Fonksiyonlar ────────────────────────────────────────── */
+
+static void AddItemToInventory(Inventory *inv, ItemType type, const char* name, int amount) {
+    /* Aynısından varsa üstüne ekle */
+    for (int i = 0; i < MAX_INVENTORY_SLOTS; i++) {
+        if (inv->slots[i].type == type) {
+            inv->slots[i].amount += amount;
+            return;
+        }
+    }
+    /* Yoksa ilk boş slota yerleştir */
+    for (int i = 0; i < MAX_INVENTORY_SLOTS; i++) {
+        if (inv->slots[i].type == ITEM_NONE) {
+            inv->slots[i].type = type;
+            inv->slots[i].amount = amount;
+            strncpy(inv->slots[i].name, name, 31);
+            return;
+        }
+    }
 }
 
 /* ── Hero Güncelleme ─────────────────────────────────────────────── */
@@ -196,10 +249,22 @@ static void HeroMeleeAttack(Hero *hero, DungeonMode *dungeon) {
     }
 }
 
-/* Q — Kılıç Darbesi: mouse yönünde 120° koni hasar + sallama görseli */
+static bool CastSkillCost(Hero *hero, int skillIdx) {
+    if (skillIdx >= hero->skillCount) return false;
+    Skill *s = &hero->skills[skillIdx];
+    if (s->currentCooldown > 0.0f) return false;
+    if (hero->stats.mana < s->manaCost) return false;
+    
+    hero->stats.mana -= s->manaCost;
+    s->currentCooldown = s->cooldown;
+    return true;
+}
+
+/* Q — Warrior: Koni(Cleave), Mage: Fireball(Ates topu - tek hedef veya mermi), Archer: Delip gecen ok */
 static void SkillQ(Hero *hero, DungeonMode *dungeon) {
-    if (hero->skillCooldown[0] > 0.0f) return;
-    hero->skillCooldown[0] = hero->skillMaxCD[0];
+    if (!CastSkillCost(hero, 0)) return;
+    Skill *s = &hero->skills[0];
+
     Vector2 mouse = GetMousePosition();
     float dx = mouse.x - hero->position.x;
     float dy = mouse.y - hero->position.y;
@@ -207,47 +272,124 @@ static void SkillQ(Hero *hero, DungeonMode *dungeon) {
     if (len < 1.0f) return;
     float nx = dx / len, ny = dy / len;
 
-    /* Görsel: koni yönü ve timer kaydet */
-    hero->swingAngle = atan2f(dy, dx) * RAD2DEG;
-    hero->swingTimer = 0.30f;
-
-    float coneRange = 80.0f;
-    for (int i = 0; i < MAX_DUNGEON_MOBS; i++) {
-        DungeonMob *m = &dungeon->mobs[i];
-        if (!m->active) continue;
-        float mx = m->position.x - hero->position.x;
-        float my = m->position.y - hero->position.y;
-        float dist = sqrtf(mx*mx + my*my);
-        if (dist > coneRange) continue;
-        /* 120° koni: dot product > cos(60°) ≈ 0.5 */
-        float dot = (mx / dist) * nx + (my / dist) * ny;
-        if (dot < 0.5f) continue;
-        float dmg = hero->stats.atk * 1.5f;
-        m->hp -= dmg;
-        if (m->hp <= 0.0f) {
-            m->active = false;
-            AddHeroXP(hero, 20 + hero->level * 5);
+    if (hero->heroClass == HERO_WARRIOR) {
+        /* Warrior Cleave: Koni şeklinde hasar */
+        hero->swingAngle = atan2f(dy, dx) * RAD2DEG;
+        hero->swingTimer = 0.30f;
+        float coneRange = s->radius;
+        for (int i = 0; i < MAX_DUNGEON_MOBS; i++) {
+            DungeonMob *m = &dungeon->mobs[i];
+            if (!m->active) continue;
+            float mx = m->position.x - hero->position.x;
+            float my = m->position.y - hero->position.y;
+            float dist = sqrtf(mx*mx + my*my);
+            if (dist > coneRange) continue;
+            float dot = (mx / dist) * nx + (my / dist) * ny;
+            if (dot < 0.5f) continue;
+            float dmg = hero->stats.atk * s->value;
+            m->hp -= dmg;
+            if (m->hp <= 0.0f) { m->active = false; AddHeroXP(hero, 20 + hero->level * 5); }
+        }
+    } else if (hero->heroClass == HERO_MAGE) {
+        /* Mage Fireball: İlk hedefe hasar */
+        hero->swingAngle = atan2f(dy, dx) * RAD2DEG;
+        hero->swingTimer = 0.20f;
+        DungeonMob *target = NULL;
+        float bestDist = s->radius;
+        for (int i = 0; i < MAX_DUNGEON_MOBS; i++) {
+            DungeonMob *m = &dungeon->mobs[i];
+            if (!m->active) continue;
+            float mx = m->position.x - hero->position.x;
+            float my = m->position.y - hero->position.y;
+            float dist = sqrtf(mx*mx + my*my);
+            if (dist < bestDist) {
+                float dot = (mx / dist) * nx + (my / dist) * ny;
+                if (dot > 0.8f) { bestDist = dist; target = m; }
+            }
+        }
+        if (target) {
+            target->hp -= hero->stats.atk * s->value;
+            if (target->hp <= 0.0f) { target->active = false; AddHeroXP(hero, 20 + hero->level * 5); }
+        }
+    } else if (hero->heroClass == HERO_ARCHER) {
+        /* Archer Piercing Arrow: Düz çizgi boyunca herkese hasar */
+        hero->swingAngle = atan2f(dy, dx) * RAD2DEG;
+        hero->swingTimer = 0.15f;
+        for (int i = 0; i < MAX_DUNGEON_MOBS; i++) {
+            DungeonMob *m = &dungeon->mobs[i];
+            if (!m->active) continue;
+            float mx = m->position.x - hero->position.x;
+            float my = m->position.y - hero->position.y;
+            float dist = sqrtf(mx*mx + my*my);
+            if (dist > s->radius) continue;
+            float dot = (mx / dist) * nx + (my / dist) * ny;
+            if (dot > 0.9f) {
+                m->hp -= hero->stats.atk * s->value;
+                if (m->hp <= 0.0f) { m->active = false; AddHeroXP(hero, 20 + hero->level * 5); }
+            }
         }
     }
 }
 
-/* W — Komuta Çığlığı: hero'nun HP'sini %20 yeniler */
+/* W — Warrior: Shield Wall (Can), Mage: Mana Shield (Mana -> HP), Archer: Agility (Hız) */
 static void SkillW(Hero *hero) {
-    if (hero->skillCooldown[1] > 0.0f) return;
-    hero->skillCooldown[1] = hero->skillMaxCD[1];
-    hero->stats.hp += hero->stats.maxHp * 0.20f;
-    if (hero->stats.hp > hero->stats.maxHp) hero->stats.hp = hero->stats.maxHp;
+    if (!CastSkillCost(hero, 1)) return;
+    Skill *s = &hero->skills[1];
+    
+    if (hero->heroClass == HERO_WARRIOR) {
+        hero->stats.hp += hero->stats.maxHp * s->value;
+        if (hero->stats.hp > hero->stats.maxHp) hero->stats.hp = hero->stats.maxHp;
+    } else if (hero->heroClass == HERO_MAGE) {
+        /* Geçici kalkan / hasar emilimi - Şimdilik direkt HP'ye ekleyelim */
+        hero->stats.hp += hero->stats.maxHp * s->value;
+        if (hero->stats.hp > hero->stats.maxHp) hero->stats.hp = hero->stats.maxHp;
+    } else if (hero->heroClass == HERO_ARCHER) {
+        /* Hız artışı için geçici buff. Basitlik için kalıcı az miktar heal + hızlı can yenileme */
+        hero->stats.hp += hero->stats.maxHp * s->value;
+        if (hero->stats.hp > hero->stats.maxHp) hero->stats.hp = hero->stats.maxHp;
+    }
 }
 
-/* E — Sis Perdesi: 100px yarıçaptaki moblara 3s yavaşlatma */
+/* E — Warrior: Charge (İleri Atılma), Mage: Blink (Işınlanma), Archer: Zehir Bulutu (Yavaşlatma) */
 static void SkillE(Hero *hero, DungeonMode *dungeon) {
-    if (hero->skillCooldown[2] > 0.0f) return;
-    hero->skillCooldown[2] = hero->skillMaxCD[2];
-    for (int i = 0; i < MAX_DUNGEON_MOBS; i++) {
-        DungeonMob *m = &dungeon->mobs[i];
-        if (!m->active) continue;
-        if (DLen(hero->position, m->position) <= 100.0f)
-            m->speed *= 0.4f; /* %60 yavaşlatma — 3s sonra UpdateDungeon'da düzeltilir */
+    if (!CastSkillCost(hero, 2)) return;
+    Skill *s = &hero->skills[2];
+
+    Vector2 mouse = GetMousePosition();
+    float dx = mouse.x - hero->position.x;
+    float dy = mouse.y - hero->position.y;
+    float len = sqrtf(dx*dx + dy*dy);
+    if (len < 1.0f) len = 1.0f;
+    float nx = dx / len, ny = dy / len;
+
+    if (hero->heroClass == HERO_WARRIOR) {
+        /* İleri atılma ve hedeflere hasar verme */
+        hero->position.x += nx * 60.0f;
+        hero->position.y += ny * 60.0f;
+        for (int i = 0; i < MAX_DUNGEON_MOBS; i++) {
+            DungeonMob *m = &dungeon->mobs[i];
+            if (!m->active) continue;
+            if (DLen(hero->position, m->position) <= s->radius) {
+                m->hp -= hero->stats.atk * s->value;
+                if (m->hp <= 0.0f) { m->active = false; AddHeroXP(hero, 15); }
+            }
+        }
+    } else if (hero->heroClass == HERO_MAGE) {
+        /* Blink: Teleport (Duvarlardan geçebilir, harita dışına çıkmayı engellemeliyiz) */
+        float targetX = hero->position.x + nx * s->radius;
+        float targetY = hero->position.y + ny * s->radius;
+        if (IsTileWalkable(dungeon, targetX, targetY)) {
+            hero->position.x = targetX;
+            hero->position.y = targetY;
+        }
+    } else if (hero->heroClass == HERO_ARCHER) {
+        /* Alan yavaşlatması */
+        for (int i = 0; i < MAX_DUNGEON_MOBS; i++) {
+            DungeonMob *m = &dungeon->mobs[i];
+            if (!m->active) continue;
+            if (DLen(hero->position, m->position) <= s->radius)
+                m->speed *= (1.0f - s->value);
+        }
     }
 }
 
@@ -294,8 +436,8 @@ void UpdateHero(Hero *hero, DungeonMode *dungeon, float dt) {
     hero->animTimer += dt;
 
     /* Skill cooldown'ları ve swing görseli azalt */
-    for (int i = 0; i < 4; i++)
-        if (hero->skillCooldown[i] > 0.0f) hero->skillCooldown[i] -= dt;
+    for (int i = 0; i < hero->skillCount; i++)
+        if (hero->skills[i].currentCooldown > 0.0f) hero->skills[i].currentCooldown -= dt;
     if (hero->swingTimer > 0.0f) hero->swingTimer -= dt;
 
     /* Sağ tık → hareket hedefi belirle */
@@ -342,15 +484,66 @@ void UpdateHero(Hero *hero, DungeonMode *dungeon, float dt) {
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && hero->attackTimer <= 0.0f)
         HeroMeleeAttack(hero, dungeon);
 
-    /* Q/W/E/R skill'leri */
+    /* Q/W/E/R skill'leri ve Harita Etkileşimleri (T60) */
     if (IsKeyPressed(KEY_Q)) SkillQ(hero, dungeon);
     if (IsKeyPressed(KEY_W)) SkillW(hero);
-    if (IsKeyPressed(KEY_E)) SkillE(hero, dungeon);
+
+    bool interacted = false;
+    for (int i = 0; i < dungeon->interactableCount; i++) {
+        Interactable *itr = &dungeon->interactables[i];
+        if (!itr->active || itr->used) continue;
+        if (DLen(hero->position, itr->position) < 50.0f) {
+            if (IsKeyPressed(KEY_E)) {
+                itr->used = true;
+                interacted = true;
+                if (itr->type == INTERACTABLE_CHEST) {
+                    AddHeroXP(hero, 150);
+                    dungeon->inventory.bonusGold += 50;
+                } else if (itr->type == INTERACTABLE_SHRINE) {
+                    hero->stats.maxHp += 20.0f;
+                    hero->stats.hp    += 20.0f;
+                    hero->stats.atk   += 5.0f;
+                } else if (itr->type == INTERACTABLE_WELL) {
+                    hero->stats.hp    = hero->stats.maxHp;
+                    hero->stats.mana  = hero->stats.maxMana;
+                }
+                break;
+            }
+        }
+    }
+
+    if (IsKeyPressed(KEY_E) && !interacted) SkillE(hero, dungeon);
+
     if (IsKeyPressed(KEY_R)) {
-        if (hero->skillCooldown[3] <= 0.0f) {
-            hero->skillCooldown[3] = hero->skillMaxCD[3];
+        if (CastSkillCost(hero, 3)) {
             dungeon->allyCooldown  = ALLY_CALL_COOLDOWN;
-            SpawnAllies(dungeon, hero->position);
+            Skill *s = &hero->skills[3];
+            Vector2 mouse = GetMousePosition();
+
+            if (hero->heroClass == HERO_WARRIOR) {
+                /* Destek Çağır (Müttefik Birlikler) */
+                SpawnAllies(dungeon, hero->position);
+            } else if (hero->heroClass == HERO_MAGE) {
+                /* Meteor: İmlecin olduğu alana devasa hasar */
+                for (int i = 0; i < MAX_DUNGEON_MOBS; i++) {
+                    DungeonMob *m = &dungeon->mobs[i];
+                    if (!m->active) continue;
+                    if (DLen(mouse, m->position) <= s->radius) {
+                        m->hp -= hero->stats.atk * s->value;
+                        if (m->hp <= 0.0f) { m->active = false; AddHeroXP(hero, 20 + hero->level * 5); }
+                    }
+                }
+            } else if (hero->heroClass == HERO_ARCHER) {
+                /* Ok Yağmuru: İmleç etrafına çok geniş alan hasarı */
+                for (int i = 0; i < MAX_DUNGEON_MOBS; i++) {
+                    DungeonMob *m = &dungeon->mobs[i];
+                    if (!m->active) continue;
+                    if (DLen(mouse, m->position) <= s->radius) {
+                        m->hp -= hero->stats.atk * s->value;
+                        if (m->hp <= 0.0f) { m->active = false; AddHeroXP(hero, 30); }
+                    }
+                }
+            }
         }
     }
 
@@ -361,15 +554,45 @@ void UpdateHero(Hero *hero, DungeonMode *dungeon, float dt) {
         if (DLen(hero->position, lt->position) < 20.0f) {
             switch (lt->type) {
                 case LOOT_POTION:
-                    dungeon->inventory.potions++;
-                    hero->stats.hp += hero->stats.maxHp * 0.25f;
-                    if (hero->stats.hp > hero->stats.maxHp) hero->stats.hp = hero->stats.maxHp;
+                    AddItemToInventory(&dungeon->inventory, ITEM_POTION, "Health Potion", 1);
                     break;
-                case LOOT_RUNE: dungeon->inventory.runes++;                      break;
-                case LOOT_GEAR: dungeon->inventory.gear++;                       break;
-                case LOOT_GOLD: dungeon->inventory.bonusGold += lt->value;       break;
+                case LOOT_RUNE:
+                    AddItemToInventory(&dungeon->inventory, ITEM_RUNE, "Magic Rune", 1);
+                    break;
+                case LOOT_GEAR:
+                    AddItemToInventory(&dungeon->inventory, ITEM_GEAR, "Iron Sword", 1);
+                    break;
+                case LOOT_GOLD:
+                    dungeon->inventory.bonusGold += lt->value;
+                    break;
             }
             lt->active = false;
+        }
+    }
+
+    /* T61: Envanter Toggle ve Kısayollar (Shift + 1-6) */
+    if (IsKeyPressed(KEY_I)) {
+        dungeon->inventory.isOpen = !dungeon->inventory.isOpen;
+    }
+
+    if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
+        int useIndex = -1;
+        if (IsKeyPressed(KEY_ONE))   useIndex = 0;
+        else if (IsKeyPressed(KEY_TWO))   useIndex = 1;
+        else if (IsKeyPressed(KEY_THREE)) useIndex = 2;
+        else if (IsKeyPressed(KEY_FOUR))  useIndex = 3;
+        else if (IsKeyPressed(KEY_FIVE))  useIndex = 4;
+        else if (IsKeyPressed(KEY_SIX))   useIndex = 5;
+
+        if (useIndex >= 0 && useIndex < MAX_INVENTORY_SLOTS) {
+            Item *it = &dungeon->inventory.slots[useIndex];
+            if (it->type == ITEM_POTION && it->amount > 0) {
+                it->amount--;
+                if (it->amount == 0) it->type = ITEM_NONE;
+                /* İksir kullanımı: %40 HP yeniler */
+                hero->stats.hp += hero->stats.maxHp * 0.40f;
+                if (hero->stats.hp > hero->stats.maxHp) hero->stats.hp = hero->stats.maxHp;
+            }
         }
     }
 
@@ -499,6 +722,25 @@ void DrawDungeon(DungeonMode *dungeon, Hero *hero) {
         DrawCircleLines((int)lt->position.x, (int)lt->position.y, 8, WHITE);
     }
 
+    /* T60 — Harita Etkileşimleri (Interactables) */
+    for (int i = 0; i < dungeon->interactableCount; i++) {
+        Interactable *itr = &dungeon->interactables[i];
+        if (!itr->active || itr->used) continue;
+        
+        Color ic = WHITE;
+        if (itr->type == INTERACTABLE_CHEST) ic = GOLD;
+        else if (itr->type == INTERACTABLE_SHRINE) ic = MAGENTA;
+        else if (itr->type == INTERACTABLE_WELL) ic = SKYBLUE;
+
+        DrawRectangle((int)itr->position.x - 12, (int)itr->position.y - 12, 24, 24, ic);
+        DrawRectangleLines((int)itr->position.x - 12, (int)itr->position.y - 12, 24, 24, RAYWHITE);
+
+        if (DLen(hero->position, itr->position) < 50.0f) {
+            int tw = MeasureText(itr->tooltip, 14);
+            DrawText(itr->tooltip, (int)itr->position.x - tw / 2, (int)itr->position.y - 30, 14, WHITE);
+        }
+    }
+
     /* Moblar */
     for (int i = 0; i < MAX_DUNGEON_MOBS; i++) {
         DungeonMob *m = &dungeon->mobs[i];
@@ -587,36 +829,95 @@ void DrawDungeon(DungeonMode *dungeon, Hero *hero) {
              20, 6, 12, (Color){200,200,200,230});
     char inv[140];
     snprintf(inv, sizeof(inv),
-             "%s Lv.%d  HP:%.0f/%.0f  Mana:%.0f/%.0f  |  Iksir:%d Rune:%d Gear:%d  Altin:+%d",
+             "%s Lv.%d  HP:%.0f/%.0f  Mana:%.0f/%.0f  |  Altin:+%d  |  [I] Envanter",
              clsName, hero->level,
              hero->stats.hp, hero->stats.maxHp,
              hero->stats.mana, hero->stats.maxMana,
-             dungeon->inventory.potions, dungeon->inventory.runes,
-             dungeon->inventory.gear, dungeon->inventory.bonusGold);
+             dungeon->inventory.bonusGold);
     DrawText(inv, 20, 28, 12, GOLD);
 
     /* ── Skill CD paneli — alt ──────────────────────────────────────── */
     DrawRectangle(0, 720 - 48, 1280, 48, (Color){0,0,0,180});
-    const char *skillNames[4] = {"Q:Darbe", "W:Iyiles", "E:Sis", "R:Destek"};
-    Color        skillColors[4] = {ORANGE, GREEN, SKYBLUE, GOLD};
-    for (int i = 0; i < 4; i++) {
-        int bx = 20 + i * 120;
+    for (int i = 0; i < hero->skillCount; i++) {
+        Skill *s = &hero->skills[i];
+        int bx = 20 + i * 150;
         int by = 720 - 44;
-        float cd    = hero->skillCooldown[i];
-        float maxcd = hero->skillMaxCD[i];
-        Color bc = (cd <= 0.0f) ? skillColors[i] : (Color){60,60,60,200};
-        DrawRectangle(bx, by, 100, 36, bc);
-        DrawRectangleLines(bx, by, 100, 36, WHITE);
-        DrawText(skillNames[i], bx + 4, by + 4, 12, WHITE);
+        float cd    = s->currentCooldown;
+        float maxcd = s->cooldown;
+        bool hasMana = hero->stats.mana >= s->manaCost;
+        Color bc = (cd <= 0.0f && hasMana) ? s->color : (Color){60,60,60,200};
+        DrawRectangle(bx, by, 140, 36, bc);
+        DrawRectangleLines(bx, by, 140, 36, WHITE);
+        DrawText(s->name, bx + 4, by + 4, 11, WHITE);
         if (cd > 0.0f) {
-            /* Dolum çubuğu */
             float fill = 1.0f - (cd / maxcd);
-            DrawRectangle(bx, by + 28, (int)(100 * fill), 8, skillColors[i]);
-            char cdtxt[8];
-            snprintf(cdtxt, sizeof(cdtxt), "%.1fs", cd);
-            DrawText(cdtxt, bx + 36, by + 14, 11, WHITE);
+            DrawRectangle(bx, by + 28, (int)(140 * fill), 8, s->color);
+            char cdtxt[32];
+            snprintf(cdtxt, sizeof(cdtxt), "%.1fs (M:%d)", cd, s->manaCost);
+            DrawText(cdtxt, bx + 30, by + 16, 11, WHITE);
+        } else if (!hasMana) {
+            char cdtxt[32];
+            snprintf(cdtxt, sizeof(cdtxt), "MANA YOK(%d)", s->manaCost);
+            DrawText(cdtxt, bx + 10, by + 18, 10, RED);
         } else {
-            DrawText("HAZIR", bx + 28, by + 18, 10, WHITE);
+            char cdtxt[32];
+            snprintf(cdtxt, sizeof(cdtxt), "HAZIR (M:%d)", s->manaCost);
+            DrawText(cdtxt, bx + 25, by + 18, 10, WHITE);
+        }
+    }
+
+    /* T61: Gelişmiş Envanter Arayüzü */
+    if (dungeon->inventory.isOpen) {
+        int invW = 220;
+        int invH = 290;
+        int invX = 1280 - invW - 20;
+        int invY = 52 + 20;
+
+        DrawRectangle(invX, invY, invW, invH, (Color){20, 20, 25, 230});
+        DrawRectangleLines(invX, invY, invW, invH, (Color){100, 100, 120, 255});
+        DrawText("ENVANTER", invX + invW/2 - MeasureText("ENVANTER", 14)/2, invY + 10, 14, GOLD);
+        DrawText("Shift+1..6 Kullan", invX + invW/2 - MeasureText("Shift+1..6 Kullan", 10)/2, invY + 28, 10, LIGHTGRAY);
+        
+        int slotW = 50;
+        int slotH = 50;
+        int padding = 10;
+        int startX = invX + 20;
+        int startY = invY + 50;
+
+        for (int i = 0; i < MAX_INVENTORY_SLOTS; i++) {
+            int row = i / 3;
+            int col = i % 3;
+            int sx = startX + col * (slotW + padding);
+            int sy = startY + row * (slotH + padding);
+
+            DrawRectangle(sx, sy, slotW, slotH, (Color){40, 40, 50, 200});
+            DrawRectangleLines(sx, sy, slotW, slotH, (Color){80, 80, 100, 255});
+
+            /* Hotkey İpucu */
+            if (i < 6) {
+                DrawText(TextFormat("S%d", i+1), sx + 2, sy + 2, 8, (Color){150,150,150,255});
+            }
+
+            Item *it = &dungeon->inventory.slots[i];
+            if (it->type != ITEM_NONE && it->amount > 0) {
+                Color c = WHITE;
+                if (it->type == ITEM_POTION) c = RED;
+                else if (it->type == ITEM_RUNE) c = PURPLE;
+                else if (it->type == ITEM_GEAR) c = LIGHTGRAY;
+                
+                DrawCircle(sx + slotW/2, sy + slotH/2, 12, c);
+                DrawText(TextFormat("x%d", it->amount), sx + slotW - 18, sy + slotH - 14, 10, WHITE);
+            }
+
+            /* Tooltip */
+            if (CheckCollisionPointRec(GetMousePosition(), (Rectangle){(float)sx, (float)sy, (float)slotW, (float)slotH})) {
+                DrawRectangleLines(sx, sy, slotW, slotH, WHITE);
+                if (it->type != ITEM_NONE) {
+                    int tw = MeasureText(it->name, 12);
+                    DrawRectangle(sx, sy - 20, tw + 10, 18, (Color){0,0,0,200});
+                    DrawText(it->name, sx + 5, sy - 18, 12, WHITE);
+                }
+            }
         }
     }
 
