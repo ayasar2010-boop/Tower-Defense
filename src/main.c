@@ -700,10 +700,17 @@ void InitMap(Game *g) {
     for (int c = 80;  c <= 105; c++) g->grid[65][c]  = CELL_PATH;
     for (int r = 65;  r <= 72;  r++) g->grid[r][105] = CELL_PATH;
 
-    /* === KÖY (VILLAGE) — yolun sonunda 6×6 blok === */
-    for (int r = 70; r <= 77; r++)
-        for (int c = 107; c <= 115; c++)
+    /* === KÖY (VILLAGE) — büyük köy bloğu (14×16 hücre) === */
+    for (int r = 64; r <= 79; r++)
+        for (int c = 106; c <= 119; c++)
             g->grid[r][c] = CELL_VILLAGE;
+
+    /* Köy ana caddesi — yoldan köy merkezine uzanan yatay cadde */
+    for (int c = 106; c <= 119; c++) g->grid[72][c] = CELL_VILLAGE;
+    /* Köy çapraz caddesi — dikey */
+    for (int r = 64; r <= 79; r++) g->grid[r][113] = CELL_VILLAGE;
+    /* Giriş geçidi — yol ile köyü birleştir */
+    for (int r = 70; r <= 74; r++) g->grid[r][106] = CELL_PATH;
 
     /* === BUILDABLE hücreler: yol etrafı (2 hücre mesafe, 8 yön) === */
     int dr8[] = {-1, 1, 0, 0, -1, -1, 1, 1};
@@ -746,8 +753,9 @@ void InitWaypoints(Game *g) {
         {50,   55},   /* aşağı in */
         {80,   55},   /* sağa git */
         {80,   65},   /* aşağı in */
-        {105,  65},   /* sağa git */
-        {105,  72}    /* köy kapısı — çıkış */
+        {105,  65},   /* saga git */
+        {105,  72},   /* koy kapisi */
+        {113,  72}    /* koy merkezi — nihai hedef */
     };
     int n = sizeof(wp) / sizeof(wp[0]);
     for (int i = 0; i < n && i < MAX_WAYPOINTS; i++) {
@@ -1424,25 +1432,25 @@ void SpawnEnemy(Game *g, EnemyType type, float hpMult) {
             case ENEMY_NORMAL:
                 e->maxHp   = ENEMY_BASE_HP * 1.0f * hpMult;
                 e->speed   = ENEMY_BASE_SPEED * 1.0f;
-                e->radius  = 10.0f;
+                e->radius  = (float)ISO_HALF_W * 0.50f;   /* ~6 */
                 e->color   = RED;
                 break;
             case ENEMY_FAST:
                 e->maxHp   = ENEMY_BASE_HP * 0.6f * hpMult;
                 e->speed   = ENEMY_BASE_SPEED * 1.8f;
-                e->radius  = 8.0f;
+                e->radius  = (float)ISO_HALF_W * 0.38f;   /* ~4.5 */
                 e->color   = ORANGE;
                 break;
             case ENEMY_TANK:
                 e->maxHp   = ENEMY_BASE_HP * 3.0f * hpMult;
                 e->speed   = ENEMY_BASE_SPEED * 0.6f;
-                e->radius  = 14.0f;
+                e->radius  = (float)ISO_HALF_W * 0.70f;   /* ~8.4 */
                 e->color   = DARKPURPLE;
                 break;
             case ENEMY_BOSS:
                 e->maxHp   = ENEMY_BASE_HP * 20.0f * hpMult;
                 e->speed   = ENEMY_BASE_SPEED * 0.4f;
-                e->radius  = 22.0f;
+                e->radius  = (float)ISO_HALF_W * 1.20f;   /* ~14 */
                 e->color   = MAROON;
                 e->isBoss  = true;
                 e->bossPhase = 1;
@@ -2511,14 +2519,14 @@ void HandleInput(Game *g) {
                         t->active  = true;
                         switch (t->type) {
                             case TOWER_BASIC:
-                                t->range=150; t->damage=20; t->fireRate=2.0f;
+                                t->range=200; t->damage=20; t->fireRate=2.0f;
                                 t->splashRadius=0; t->color=BLUE; break;
                             case TOWER_SNIPER:
-                                t->range=300; t->damage=80; t->fireRate=0.5f;
+                                t->range=400; t->damage=80; t->fireRate=0.5f;
                                 t->splashRadius=0; t->color=DARKGREEN; break;
                             case TOWER_SPLASH:
-                                t->range=120; t->damage=30; t->fireRate=1.0f;
-                                t->splashRadius=60; t->color=MAROON; break;
+                                t->range=160; t->damage=30; t->fireRate=1.0f;
+                                t->splashRadius=70; t->color=MAROON; break;
                             default: break;
                         }
                         if (g->hero.heroClass == HERO_WARRIOR)     t->damage   *= 1.15f;
@@ -2664,7 +2672,13 @@ void DrawMap(Game *g) {
                 case CELL_BUILDABLE: fill = (Color){50,  80,  50, 255}; break;
                 case CELL_TOWER:     fill = (Color){40,  60,  40, 255}; break;
                 case CELL_RURAL:     fill = (Color){38,  55,  28, 255}; break;
-                case CELL_VILLAGE:   fill = (Color){90,  70,  45, 255}; break;
+                case CELL_VILLAGE: {
+                    /* Cadde hücreleri biraz daha açık */
+                    bool isStreet = (r == 72) || (c == 113);
+                    fill = isStreet ? (Color){140, 110, 75, 255}
+                                    : (Color){100,  78, 48, 255};
+                    break;
+                }
                 default:             fill = (Color){30,  50,  30, 255}; break;
             }
             /* Izometrik diamond tile — 2 ucgen */
@@ -2676,12 +2690,52 @@ void DrawMap(Game *g) {
             DrawTriangle(top, left, right, fill);
             DrawTriangle(right, left, bot, fill);
 
-            /* T68 — Koy hucrelerine kucuk cati imi */
+            /* Köy hücreleri: çit, bina, town center */
             if (g->grid[r][c] == CELL_VILLAGE) {
-                DrawTriangle(
-                    (Vector2){ctr.x, ctr.y - (float)ISO_HALF_H * 2.2f},
-                    left, right,
-                    (Color){180, 60, 40, 220});
+                bool isStreet = (r == 72) || (c == 113);
+                bool isTownCenter = (c >= 110 && c <= 116 && r >= 69 && r <= 75
+                                     && !isStreet);
+                bool isPerimeter = false;
+                if (!isStreet) {
+                    int pr[] = {r-1,r+1,r,r};
+                    int pc[] = {c,c,c-1,c+1};
+                    for (int d = 0; d < 4; d++) {
+                        int nr2 = pr[d], nc2 = pc[d];
+                        if (nr2 < 0 || nr2 >= GRID_ROWS || nc2 < 0 || nc2 >= GRID_COLS)
+                            { isPerimeter = true; break; }
+                        int ct = g->grid[nr2][nc2];
+                        if (ct != CELL_VILLAGE && ct != CELL_PATH)
+                            { isPerimeter = true; break; }
+                    }
+                }
+                if (isTownCenter) {
+                    /* Town center — iri bina */
+                    DrawTriangle(
+                        (Vector2){ctr.x, ctr.y - (float)ISO_HALF_H * 3.8f},
+                        (Vector2){ctr.x - (float)ISO_HALF_W*0.6f, ctr.y - (float)ISO_HALF_H*1.5f},
+                        (Vector2){ctr.x + (float)ISO_HALF_W*0.6f, ctr.y - (float)ISO_HALF_H*1.5f},
+                        (Color){200, 160, 80, 240});
+                    DrawRectangle((int)(ctr.x-(float)ISO_HALF_W*0.5f),
+                                  (int)(ctr.y-(float)ISO_HALF_H*1.5f),
+                                  (int)(ISO_HALF_W), (int)(ISO_HALF_H*1.5f),
+                                  (Color){160, 120, 60, 200});
+                } else if (!isStreet && !isPerimeter) {
+                    /* İç köy — küçük ev çatısı */
+                    DrawTriangle(
+                        (Vector2){ctr.x, ctr.y - (float)ISO_HALF_H * 2.2f},
+                        (Vector2){ctr.x - (float)ISO_HALF_W*0.45f, ctr.y - (float)ISO_HALF_H*1.0f},
+                        (Vector2){ctr.x + (float)ISO_HALF_W*0.45f, ctr.y - (float)ISO_HALF_H*1.0f},
+                        (Color){180, 60, 40, 200});
+                }
+                if (isPerimeter) {
+                    /* Çit direği */
+                    float px2 = ctr.x, py2 = ctr.y - (float)ISO_HALF_H;
+                    DrawRectangle((int)px2 - 1, (int)(py2 - (float)ISO_HALF_H*1.2f),
+                                  2, (int)((float)ISO_HALF_H*1.2f),
+                                  (Color){100, 70, 35, 255});
+                    DrawCircle((int)px2, (int)(py2 - (float)ISO_HALF_H*1.2f),
+                               1.5f, (Color){130, 90, 45, 255});
+                }
             }
 
             if (g->showGrid) {
@@ -2783,34 +2837,56 @@ void DrawTowers(Game *g) {
         Tower *t = &g->towers[i];
         if (!t->active) continue;
 
-        float sizeScale = 0.65f + 0.1f * t->level; /* Seviye 1:0.75, 2:0.85, 3:0.95 */
-        int   half      = (int)(CELL_SIZE * sizeScale / 2.0f);
-        int   px        = (int)t->position.x;
-        int   py        = (int)t->position.y;
+        float sizeScale = 0.75f + 0.12f * t->level;
+        float hw  = (float)ISO_HALF_W * sizeScale;   /* yatay yari-genislik */
+        float hh  = (float)ISO_HALF_H * sizeScale;   /* dikey yari-yukseklik */
+        float towerH = hh * 3.5f;                    /* kule yuksekligi */
+        int   px  = (int)t->position.x;
+        int   py  = (int)t->position.y;
 
-        /* Seviyeye göre rengi koyulaştır */
         Color c = t->color;
         c.r = (unsigned char)(c.r * (0.7f + 0.1f * t->level));
         c.g = (unsigned char)(c.g * (0.7f + 0.1f * t->level));
         c.b = (unsigned char)(c.b * (0.7f + 0.1f * t->level));
 
-        DrawRectangle(px - half, py - half, half * 2, half * 2, c);
-        DrawRectangleLines(px - half, py - half, half * 2, half * 2, WHITE);
+        /* Zemin diamond (kule tabanı) */
+        Vector2 dTop  = {t->position.x,      t->position.y - hh};
+        Vector2 dRght = {t->position.x + hw,  t->position.y     };
+        Vector2 dBot  = {t->position.x,      t->position.y + hh};
+        Vector2 dLeft = {t->position.x - hw,  t->position.y     };
+        Color baseC = c; baseC.r = (unsigned char)(baseC.r * 0.6f);
+        baseC.g = (unsigned char)(baseC.g * 0.6f);
+        baseC.b = (unsigned char)(baseC.b * 0.6f);
+        DrawTriangle(dTop, dLeft, dRght, baseC);
+        DrawTriangle(dRght, dLeft, dBot, baseC);
 
-        /* Namlu çizgisi — kule merkezinden menzile doğru ince çizgi */
-        float angle = t->rotation * DEG2RAD;
-        float barLen = (float)half * 1.4f;
-        Vector2 tip  = {px + cosf(angle) * barLen, py + sinf(angle) * barLen};
-        DrawLineV(t->position, tip, WHITE);
+        /* Kule gövdesi — iso silindir: ön dikdörtgen + üst diamond */
+        float tw = hw * 0.55f;
+        Vector2 bodyBL = {t->position.x - tw, t->position.y};
+        Vector2 bodyBR = {t->position.x + tw, t->position.y};
+        Vector2 bodyTL = {t->position.x - tw, t->position.y - towerH};
+        Vector2 bodyTR = {t->position.x + tw, t->position.y - towerH};
+        DrawTriangle(bodyTL, bodyBL, bodyBR, c);
+        DrawTriangle(bodyTL, bodyBR, bodyTR, c);
+        DrawLineV(bodyTL, bodyTR, WHITE);
+        DrawLineV(bodyBL, bodyTL, WHITE);
+        DrawLineV(bodyBR, bodyTR, WHITE);
 
-        /* Seviye göstergesi (küçük nokta) */
+        /* Namlu */
+        float angle  = t->rotation * DEG2RAD;
+        float barLen = tw * 2.8f;
+        Vector2 barBase = {t->position.x, t->position.y - towerH * 0.6f};
+        Vector2 barTip  = {barBase.x + cosf(angle)*barLen, barBase.y + sinf(angle)*barLen};
+        DrawLineEx(barBase, barTip, 2.5f, WHITE);
+
+        /* Seviye noktaları */
         for (int lv = 0; lv < t->level; lv++)
-            DrawCircle(px - half + 4 + lv * 8, py + half - 5, 3, YELLOW);
+            DrawCircle(px - (int)tw + 3 + lv * 6, (int)(t->position.y - towerH + 4), 2, YELLOW);
 
-        /* B04: ateş flash — kısa beyaz parıltı */
+        /* B04: ateş flash */
         if (t->flashTimer > 0.0f) {
             float alpha = t->flashTimer / 0.1f;
-            DrawCircle(px, py, (float)half * 1.3f,
+            DrawCircle(px, (int)(t->position.y - towerH * 0.5f), hw * 1.2f,
                        (Color){255, 255, 255, (unsigned char)(90 * alpha)});
         }
     }
@@ -2863,9 +2939,9 @@ void DrawParticles(Game *g) {
 
 /* Fare grid üzerindeyken yerleştirilebilirliği gösteren yarı saydam önizleme çizer. */
 void DrawPlacementPreview(Game *g) {
-    Vector2 mp = GetMousePosition();
+    Vector2 worldMp = GetScreenToWorld2D(GetMousePosition(), g->camera.cam);
     int gx, gy;
-    if (!WorldToGrid(mp, &gx, &gy)) return;
+    if (!WorldToGrid(worldMp, &gx, &gy)) return;
 
     bool canPlace = CanPlaceTower(g, gx, gy);
     Color previewColor = canPlace ? (Color){0, 255, 0, 80} : (Color){255, 0, 0, 80};
@@ -3922,8 +3998,11 @@ int main(void) {
                     break;
                 }
                 case STATE_WAVE_CLEAR: {
-                    DrawGame(&game);
+                    BeginMode2D(game.camera.cam);
+                        DrawGame(&game);
+                    EndMode2D();
                     DrawHUD(&game);
+                    DrawMinimap(&game);
                     DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, (Color){0,0,0,100});
                     const char *wc = "DALGA TEMIZLENDI!";
                     DrawText(wc, SCREEN_WIDTH/2 - MeasureText(wc, 40)/2,
@@ -3945,11 +4024,15 @@ int main(void) {
                 case STATE_LEVEL_COMPLETE:
                     DrawLevelComplete(&game);
                     break;
-                case STATE_PAUSED:
-                    DrawGame(&game);
+                case STATE_PAUSED: {
+                    Camera2D renderCamP = game.camera.cam;
+                    BeginMode2D(renderCamP);
+                        DrawGame(&game);
+                    EndMode2D();
                     DrawHUD(&game);
                     DrawPauseOverlay(&game);
                     break;
+                }
                 case STATE_GAMEOVER:
                     DrawGameOver(&game);
                     break;
