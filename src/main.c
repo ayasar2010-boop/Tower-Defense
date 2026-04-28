@@ -76,6 +76,17 @@ typedef enum {
 } CellType;
 
 typedef enum {
+    TERRAIN_NONE    = 0,
+    TERRAIN_MOUNTAIN= 1,
+    TERRAIN_ROCK    = 2,
+    TERRAIN_RIVER   = 3,
+    TERRAIN_FIELD   = 4,
+    TERRAIN_TREE    = 5,
+    TERRAIN_BUSH    = 6,
+    TERRAIN_COUNT
+} TerrainType;
+
+typedef enum {
     TOWER_BASIC,
     TOWER_SNIPER,
     TOWER_SPLASH,
@@ -498,8 +509,11 @@ typedef struct {
     float      townCenterTimer;        /* T67 — Pasif gelir zamanlayıcı */
 
     /* T70 — Fog of War */
-    bool       fogVisible[GRID_ROWS][GRID_COLS]; /* true = şu an görünür */
-    bool       fogExplored[GRID_ROWS][GRID_COLS]; /* true = en az bir kez keşfedildi */
+    bool       fogVisible[GRID_ROWS][GRID_COLS];
+    bool       fogExplored[GRID_ROWS][GRID_COLS];
+
+    /* Terrain örtüsü */
+    unsigned char terrainLayer[GRID_ROWS][GRID_COLS]; /* TerrainType */
 } Game;
 
 /* ============================================================
@@ -509,6 +523,7 @@ typedef struct {
 /* Init */
 void InitGame(Game *g);
 void InitMap(Game *g);
+void InitTerrain(Game *g);
 void InitWaypoints(Game *g);
 void InitWaves(Game *g);
 void InitLevels(Game *g);
@@ -734,6 +749,82 @@ void InitMap(Game *g) {
         for (int c = 0; c < GRID_COLS; c++)
             if (g->grid[r][c] == CELL_EMPTY)
                 g->grid[r][c] = CELL_RURAL;
+}
+
+/* ============================================================
+ * TERRAIN — InitTerrain
+ * ============================================================ */
+
+/* Deterministik hash: pozisyona göre sabit sözde-rastgele değer üretir */
+static int TerrainHash(int r, int c) {
+    unsigned int h = (unsigned int)(r * 2654435761u ^ (unsigned int)(c * 2246822519u));
+    return (int)(h & 0x7fffffff);
+}
+
+/* Terrain katmanını harita üzerine yerleştirir.
+ * Yalnızca CELL_RURAL hücrelerine terrain atar. */
+void InitTerrain(Game *g) {
+    memset(g->terrainLayer, TERRAIN_NONE, sizeof(g->terrainLayer));
+
+    for (int r = 0; r < GRID_ROWS; r++) {
+        for (int c = 0; c < GRID_COLS; c++) {
+            if (g->grid[r][c] != CELL_RURAL) continue;
+            int h = TerrainHash(r, c);
+
+            /* Dağ bölgeleri: KK köşe + SA bölgesi */
+            if ((r < 14 && c < 20) || (r < 12 && c > 76 && c < 96)) {
+                g->terrainLayer[r][c] = ((h & 3) == 0) ? TERRAIN_ROCK : TERRAIN_MOUNTAIN;
+            }
+            /* Batı ormanı */
+            else if (r >= 6 && r <= 24 && c >= 26 && c <= 50) {
+                int v = h % 5;
+                g->terrainLayer[r][c] = (v < 3) ? TERRAIN_TREE
+                                      : (v == 3) ? TERRAIN_BUSH
+                                      : TERRAIN_NONE;
+            }
+            /* Güney-batı ormanı */
+            else if (r >= 30 && r <= 48 && c >= 10 && c <= 26) {
+                int v = h % 5;
+                g->terrainLayer[r][c] = (v < 3) ? TERRAIN_TREE
+                                      : (v == 3) ? TERRAIN_BUSH
+                                      : TERRAIN_NONE;
+            }
+            /* Doğu ormanı (köy yakını) */
+            else if (r >= 50 && r <= 68 && c >= 82 && c <= 100) {
+                int v = h % 6;
+                g->terrainLayer[r][c] = (v < 2) ? TERRAIN_TREE
+                                      : (v == 2) ? TERRAIN_BUSH
+                                      : TERRAIN_NONE;
+            }
+            /* Tarla alanları */
+            else if ((r >= 16 && r <= 28 && c >= 2 && c <= 22) ||
+                     (r >= 52 && r <= 64 && c >= 54 && c <= 82)) {
+                g->terrainLayer[r][c] = ((h % 4) < 3) ? TERRAIN_FIELD : TERRAIN_NONE;
+            }
+            /* Dağınık taş ve çalı */
+            else {
+                int v = h % 18;
+                if      (v == 0)  g->terrainLayer[r][c] = TERRAIN_ROCK;
+                else if (v <= 2)  g->terrainLayer[r][c] = TERRAIN_BUSH;
+            }
+        }
+    }
+
+    /* Nehir: köşegen bant — (r=4,c=56) → (r=28,c=72) */
+    for (int i = 0; i <= 24; i++) {
+        int rr = 4  + i;
+        int rc = 56 + i;
+        for (int dr = -1; dr <= 1; dr++) {
+            int nr = rr + dr;
+            int nc = rc + (dr == 0 ? -1 : 0);
+            for (int dc = -1; dc <= 1; dc++) {
+                int fnr = nr, fnc = nc + dc;
+                if (fnr < 0 || fnr >= GRID_ROWS || fnc < 0 || fnc >= GRID_COLS) continue;
+                if (g->grid[fnr][fnc] == CELL_RURAL)
+                    g->terrainLayer[fnr][fnc] = TERRAIN_RIVER;
+            }
+        }
+    }
 }
 
 /* ============================================================
@@ -1160,6 +1251,7 @@ void InitGame(Game *g) {
     g->contextMenuTowerIdx   = -1;
     g->loading.duration      = 1.5f;
     InitMap(g);
+    InitTerrain(g);
     InitWaypoints(g);
     InitWaves(g);
     InitLevels(g);
@@ -2673,7 +2765,6 @@ void DrawMap(Game *g) {
                 case CELL_TOWER:     fill = (Color){40,  60,  40, 255}; break;
                 case CELL_RURAL:     fill = (Color){38,  55,  28, 255}; break;
                 case CELL_VILLAGE: {
-                    /* Cadde hücreleri biraz daha açık */
                     bool isStreet = (r == 72) || (c == 113);
                     fill = isStreet ? (Color){140, 110, 75, 255}
                                     : (Color){100,  78, 48, 255};
@@ -2681,6 +2772,10 @@ void DrawMap(Game *g) {
                 }
                 default:             fill = (Color){30,  50,  30, 255}; break;
             }
+            /* Nehir: tile zemin rengi suya dönüşür (terrain override) */
+            if ((TerrainType)g->terrainLayer[r][c] == TERRAIN_RIVER)
+                fill = (Color){30, 75, 130, 255};
+
             /* Izometrik diamond tile — 2 ucgen */
             Vector2 ctr   = GridToWorld(c, r);
             Vector2 top   = {ctr.x,                   ctr.y - (float)ISO_HALF_H};
@@ -2735,6 +2830,117 @@ void DrawMap(Game *g) {
                                   (Color){100, 70, 35, 255});
                     DrawCircle((int)px2, (int)(py2 - (float)ISO_HALF_H*1.2f),
                                1.5f, (Color){130, 90, 45, 255});
+                }
+            }
+
+            /* === TERRAIN ÇİZİMİ === */
+            TerrainType terrain = (TerrainType)g->terrainLayer[r][c];
+            if (terrain != TERRAIN_NONE) {
+                float hw = (float)ISO_HALF_W, hh = (float)ISO_HALF_H;
+                switch (terrain) {
+
+                case TERRAIN_MOUNTAIN: {
+                    /* Dağ: 3 katmanlı konik kaya */
+                    float w1 = hw*1.4f, w2 = hw*0.8f, w3 = hw*0.35f;
+                    float h1 = hh*2.5f, h2 = hh*4.5f, h3 = hh*6.8f;
+                    DrawTriangle(
+                        (Vector2){ctr.x,      ctr.y-h1},
+                        (Vector2){ctr.x-w1,   ctr.y},
+                        (Vector2){ctr.x+w1,   ctr.y},
+                        (Color){90,85,80,255});
+                    DrawTriangle(
+                        (Vector2){ctr.x,      ctr.y-h2},
+                        (Vector2){ctr.x-w2,   ctr.y-h1*0.4f},
+                        (Vector2){ctr.x+w2,   ctr.y-h1*0.4f},
+                        (Color){115,110,105,255});
+                    DrawTriangle(
+                        (Vector2){ctr.x,      ctr.y-h3},
+                        (Vector2){ctr.x-w3,   ctr.y-h2*0.5f},
+                        (Vector2){ctr.x+w3,   ctr.y-h2*0.5f},
+                        (Color){145,140,135,255});
+                    /* Kar başlığı */
+                    DrawTriangle(
+                        (Vector2){ctr.x,             ctr.y-h3},
+                        (Vector2){ctr.x-w3*0.55f,    ctr.y-h3+hh*1.2f},
+                        (Vector2){ctr.x+w3*0.55f,    ctr.y-h3+hh*1.2f},
+                        (Color){235,240,255,220});
+                    break;
+                }
+
+                case TERRAIN_ROCK: {
+                    /* Küçük taş: yuvarlak gri kaya */
+                    float rr2 = hw * 0.55f;
+                    DrawCircle((int)(ctr.x + hw*0.1f), (int)(ctr.y - hh*0.5f),
+                               rr2, (Color){105,100,95,255});
+                    DrawCircle((int)(ctr.x - hw*0.25f), (int)(ctr.y),
+                               rr2*0.65f, (Color){85,80,78,255});
+                    DrawCircle((int)(ctr.x + hw*0.1f), (int)(ctr.y - hh*0.5f),
+                               rr2*0.4f, (Color){135,130,125,200});
+                    break;
+                }
+
+                case TERRAIN_RIVER: {
+                    /* Nehir: tile'ı mavi yeniden boya + dalga */
+                    DrawTriangle(top, left, right, (Color){45,100,165,230});
+                    DrawTriangle(right, left, bot,  (Color){45,100,165,230});
+                    /* Ripple çizgisi */
+                    float t2 = (float)GetTime();
+                    float wave = sinf(t2*2.0f + (float)r*0.8f + (float)c*0.5f)*hh*0.25f;
+                    DrawLineEx(
+                        (Vector2){ctr.x - hw*0.6f, ctr.y + wave},
+                        (Vector2){ctr.x + hw*0.6f, ctr.y - wave},
+                        1.5f, (Color){130,200,255,140});
+                    break;
+                }
+
+                case TERRAIN_FIELD: {
+                    /* Tarla: ekin sıraları */
+                    Color fc = (Color){180,155,50,200};
+                    for (int row2 = 0; row2 < 3; row2++) {
+                        float fy = ctr.y - hh*0.6f + row2 * hh * 0.45f;
+                        float span = hw * (0.7f - row2*0.15f);
+                        DrawLineEx(
+                            (Vector2){ctr.x - span, fy},
+                            (Vector2){ctr.x + span, fy},
+                            1.2f, fc);
+                    }
+                    break;
+                }
+
+                case TERRAIN_TREE: {
+                    /* Ağaç: gövde + konik taç */
+                    float tw = 1.8f, th = hh*2.2f, ch = hh*4.5f;
+                    float cw = hw*0.72f;
+                    /* Gövde */
+                    DrawRectangle((int)(ctr.x - tw), (int)(ctr.y - th),
+                                  (int)(tw*2), (int)th,
+                                  (Color){90,55,25,255});
+                    /* Alt yaprak katmanı */
+                    DrawTriangle(
+                        (Vector2){ctr.x,        ctr.y - ch*0.55f},
+                        (Vector2){ctr.x - cw,   ctr.y - th*0.3f},
+                        (Vector2){ctr.x + cw,   ctr.y - th*0.3f},
+                        (Color){35,105,40,240});
+                    /* Üst yaprak katmanı */
+                    DrawTriangle(
+                        (Vector2){ctr.x,           ctr.y - ch},
+                        (Vector2){ctr.x - cw*0.65f, ctr.y - ch*0.45f},
+                        (Vector2){ctr.x + cw*0.65f, ctr.y - ch*0.45f},
+                        (Color){45,130,50,240});
+                    break;
+                }
+
+                case TERRAIN_BUSH: {
+                    /* Çalı: üç iç içe daire kümesi */
+                    float br = hw * 0.42f;
+                    DrawCircle((int)(ctr.x),           (int)(ctr.y - hh*0.9f), br,       (Color){40,115,35,230});
+                    DrawCircle((int)(ctr.x - hw*0.38f),(int)(ctr.y - hh*0.5f), br*0.75f, (Color){50,130,40,220});
+                    DrawCircle((int)(ctr.x + hw*0.38f),(int)(ctr.y - hh*0.5f), br*0.75f, (Color){35,110,30,220});
+                    DrawCircle((int)(ctr.x),           (int)(ctr.y - hh*0.9f), br*0.45f, (Color){75,170,55,180});
+                    break;
+                }
+
+                default: break;
                 }
             }
 
