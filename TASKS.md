@@ -1,161 +1,295 @@
-# TASKS — Tower Defense Geliştirme Planı
+# TASKS — Tower Defense / TD-RPG-Strategy Hybrid
 
-Tüm kod `src/main.c` tek dosyasında toplanır.  
-Her görev tamamlandığında `[x]` ile işaretlenir.
+> **Kapsam:** Bu dosya **sadece teknik görevleri** içerir. Hikaye, evren, karakter ve senaryo tasarımı için → [`LORE.md`](LORE.md). Sürüm hedefleri için → [`MVP_SCOPE.md`](MVP_SCOPE.md).
+>
+> **Kurallar:**
+> - Her görev `[ ]` veya `[x]` ile işaretlenir.
+> - Risk etiketleri: `[RISK: LOW]` `[RISK: MED]` `[RISK: HIGH]`
+> - Bağımlılıklar `→` ile belirtilir (örn. `→ T15`).
+> - Her 5 görevde bir **playtest** görevi vardır.
 
 ---
 
+## 📊 GENEL DURUM
+
+| Faz | Aşama | Görev Sayısı | Tamamlanan |
+|-----|-------|:---:|:---:|
+| **MVP-Core** | 1–9 (TD temel) | 40 | 40 |
+| **MVP-Core** | 10 (VS Code) | 6 | 6 |
+| **MVP-Core** | 11 (Mimari Refaktör) | 4 | 3 |
+| **MVP-Core** | 12 (Altyapı: Save / Settings / i18n) | 6 | 0 |
+| **MVP-Core** | 13 (Hero RPG) | 4 | 1 |
+| **MVP-Core** | 14 (Görsel Efektler) | 3 | 3 |
+| **MVP-Core** | 15 (Kamera + Ses) | 2 | 2 |
+| **MVP-Core** | 16 (TD-RPG Hybrid) | 5 | 5 |
+| **MVP-Plus** | 17 (Gameplay Derinliği) | 3 | 1 |
+| **MVP-Plus** | 18 (Dalga & İçerik) | 3 | 3 |
+| **MVP-Plus** | 19 (Otonom Şehir) | 5 | 0 |
+| **MVP-Plus** | 20 (Loot & Ekipman) | 4 | 0 |
+| **MVP-Plus** | 21 (Demircilik) | 4 | 0 |
+| **Post-MVP** | 22 (Görevler & Director AI) | 4 | 0 |
+| **Post-MVP** | 23 (Yaşayan Evren) | 4 | 0 |
+| **Post-MVP** | 24 (Derin Hero Mekanikleri) | 5 | 0 |
+| **Post-MVP** | 25 (Müttefik & Şehitlik) | 3 | 0 |
+| **Post-MVP** | 26 (Lore Entegrasyonu) | 4 | 0 |
+| **Polish** | 27 (Tutorial / Erişilebilirlik / Perf) | 5 | 0 |
+| **DLC/Future** | 28 (Co-op Multiplayer) | 5 | 0 |
+| **TOTAL** | | **123** | **67** |
+
+---
+
+# ✅ MVP-CORE (1.0 sürümü için zorunlu)
+
 ## AŞAMA 1 — İskelet ve Temel Yapı
-- [x] **T01** — Dizin yapısını oluştur (`src/`, `assets/`)
-- [x] **T02** — `Makefile` yaz (Linux + Windows hedefleri)
-- [x] **T03** — `src/main.c` iskeleti: `#include`, `#define` sabitleri, enum'lar
-- [x] **T04** — Tüm struct tanımları: `Enemy`, `Tower`, `Projectile`, `Particle`, `Wave`, `Game`
-- [x] **T05** — `main()` game loop iskelet: pencere, 60 FPS, state switch, `BeginDrawing/EndDrawing`
+- [x] **T01** — Dizin yapısı (`src/`, `assets/`)
+- [x] **T02** — `Makefile` (Linux + Windows)
+- [x] **T03** — `src/main.c` iskeleti
+- [x] **T04** — Tüm struct tanımları (Enemy, Tower, Projectile, Particle, Wave, Game)
+- [x] **T05** — `main()` game loop iskeleti
 
 ## AŞAMA 2 — Harita ve Navigasyon
-- [x] **T06** — `InitMap()`: 20×12 grid, hardcoded yol + buildable hücreler
-- [x] **T07** — `InitWaypoints()`: Piksel waypoint dizisi
-- [x] **T08** — `DrawMap()`: Hücre tipine göre renkli grid çizimi
-- [x] **T09** — Grid çizgisi toggle (`showGrid`)
-- [x] **T10** — `GridToWorld()` / `WorldToGrid()` dönüşüm fonksiyonları
+- [x] **T06** — `InitMap()` 20×12 grid
+- [x] **T07** — `InitWaypoints()`
+- [x] **T08** — `DrawMap()`
+- [x] **T09** — Grid çizgisi toggle
+- [x] **T10** — `GridToWorld()` / `WorldToGrid()`
 
 ## AŞAMA 3 — Düşman Sistemi
-- [x] **T11** — `SpawnEnemy()`: Tip tablosuna göre HP/hız/renk/yarıçap ata
-- [x] **T12** — `UpdateEnemies()`: Waypoint takibi, `slowTimer`, son waypoint → `lives--`
-- [x] **T13** — `DrawEnemies()`: Tip şekli (daire/üçgen/kare) + HP bar
+- [x] **T11** — `SpawnEnemy()`
+- [x] **T12** — `UpdateEnemies()` (waypoint, slow, lives)
+- [x] **T13** — `DrawEnemies()` (tip şekli + HP bar)
 
 ## AŞAMA 4 — Kule Sistemi
-- [x] **T14** — `CanPlaceTower()` doğrulama (sınır + buildable + altın)
-- [x] **T15** — Kule yerleştirme: Sol tık → hücreyi `CELL_TOWER` yap, altın düş
-- [x] **T16** — `FindNearestEnemy()`: Menzil içindeki en yakın aktif düşman
-- [x] **T17** — `UpdateTowers()`: `fireCooldown`, hedef seçimi, `CreateProjectile()`
-- [x] **T18** — `DrawTowers()`: Kare gövde + namlu çizgisi (rotation)
-- [x] **T19** — Kule yükseltme: Sağ tık → level++, hasar/menzil artışı
+- [x] **T14** — `CanPlaceTower()`
+- [x] **T15** — Kule yerleştirme
+- [x] **T16** — `FindNearestEnemy()`
+- [x] **T17** — `UpdateTowers()`
+- [x] **T18** — `DrawTowers()`
+- [x] **T19** — Kule yükseltme (sağ tık)
 
 ## AŞAMA 5 — Mermi ve Parçacık Sistemi
-- [x] **T20** — `CreateProjectile()`: Homing vektör, splash bilgisi
-- [x] **T21** — `UpdateProjectiles()`: Hareket, isabet tespiti, splash hasar
-- [x] **T22** — `DrawProjectiles()`: Kule tipine göre renk/şekil
-- [x] **T23** — `SpawnParticles()`: Ölüm / isabet / splash efektleri
-- [x] **T24** — `UpdateParticles()`: Fade + shrink, `lifetime <= 0` deaktive
-- [x] **T25** — `DrawParticles()`: Alpha-blended daire/kare
+- [x] **T20** — `CreateProjectile()`
+- [x] **T21** — `UpdateProjectiles()`
+- [x] **T22** — `DrawProjectiles()`
+- [x] **T23** — `SpawnParticles()`
+- [x] **T24** — `UpdateParticles()`
+- [x] **T25** — `DrawParticles()`
 
 ## AŞAMA 6 — Dalga Sistemi
-- [x] **T26** — `InitWaves()`: 10 dalganın tanımı (tip, sayı, aralık, ön-gecikme)
-- [x] **T27** — `UpdateWaves()`: `spawnTimer`, `SpawnEnemy()` tetikleme
-- [x] **T28** — Dalga tamamlanma tespiti: Tüm düşmanlar öldü/geçti → `STATE_WAVE_CLEAR`
+- [x] **T26** — `InitWaves()` (10 dalga)
+- [x] **T27** — `UpdateWaves()`
+- [x] **T28** — Dalga tamamlanma → `STATE_WAVE_CLEAR`
 - [x] **T29** — Son dalga → `STATE_VICTORY`
 
 ## AŞAMA 7 — HUD ve Girdi
-- [x] **T30** — `DrawHUD()`: Üst panel (can/altın/skor/dalga), kule seçim butonları
-- [x] **T31** — Yerleştirme önizlemesi: Fare grid'deyken yeşil/kırmızı yarı saydam kare + menzil dairesi
-- [x] **T32** — `HandleInput()`: 1/2/3 kule seçimi, sol tık yerleştir, sağ tık yükselt, P/ESC/F/G/SPACE/R
+- [x] **T30** — `DrawHUD()`
+- [x] **T31** — Yerleştirme önizlemesi
+- [x] **T32** — `HandleInput()`
 
 ## AŞAMA 8 — Durum Ekranları
-- [x] **T33** — `DrawMenu()` + `UpdateMenu()`: Başlık + "Başla" butonu
-- [x] **T34** — `DrawPauseOverlay()` + `UpdatePause()`: Karartma + Devam/Çık
-- [x] **T35** — `DrawGameOver()`: GAME OVER + skor + Yeniden Başla
-- [x] **T36** — `DrawVictory()`: TEBRİKLER + final skor + Yeniden Başla
-- [x] **T37** — `InitGame()` / `RestartGame()`: Sıfırlama fonksiyonu
+- [x] **T33** — `DrawMenu()` + `UpdateMenu()`
+- [x] **T34** — `DrawPauseOverlay()` + `UpdatePause()`
+- [x] **T35** — `DrawGameOver()`
+- [x] **T36** — `DrawVictory()`
+- [x] **T37** — `InitGame()` / `RestartGame()`
 
 ## AŞAMA 9 — Derleme ve Test
-- [x] **T38** — `Makefile` doğrula, `make` ile temiz derleme
-- [x] **T39** — Oynanabilirlik testi: Tüm dalgalar, kule yerleştir/yükselt, game over/victory (splash ölüm hatası düzeltildi)
-- [x] **T40** — Bellek / sınır kontrolü: Dizi overflow yok, grid sınır aşımı yok
+- [x] **T38** — `Makefile` doğrulama
+- [x] **T39** — Oynanabilirlik testi
+- [x] **T40** — Bellek / sınır kontrolü
 
-## BONUS (İsteğe Bağlı)
-- [x] **B01** — Kule satma (sağ tık menüsü, %50 geri)
+### Bonus (tamamlandı)
+- [x] **B01** — Kule satma
 - [x] **B02** — Yol yön okları
-- [x] **B03** — Dalga ilerleme çubuğu (mini progress bar)
+- [x] **B03** — Dalga ilerleme çubuğu
 - [x] **B04** — Kule ateş flash animasyonu
 
 ---
 
-## Durum Özeti
-| Aşama | Toplam | Tamamlanan |
-|-------|--------|------------|
-| 1 — İskelet      | 5  | 5 |
-| 2 — Harita       | 5  | 5 |
-| 3 — Düşman       | 3  | 3 |
-| 4 — Kule         | 6  | 6 |
-| 5 — Mermi/Partik | 6  | 6 |
-| 6 — Dalga        | 4  | 4 |
-| 7 — HUD/Girdi    | 3  | 3 |
-| 8 — Ekranlar     | 5  | 5 |
-| 9 — Test         | 3  | 3 |
-| **Toplam**       | **40** | **40** |
-
-## Durum Özeti (Aşama 10)
-
-| Aşama                | Toplam | Tamamlanan |
-|----------------------|--------|------------|
-| 10 — VS Code Ortamı  | 6      | 6          |
-
-## AŞAMA 10 — VS CODE GAME STUDIO ORTAMI
-
-- [x] **T46** — `.vscode/extensions.json`: C/C++ Pack, CMake/Makefile Tools, Better C++ Syntax, Shader dil desteği, Asset önizleyici, Hex Editor, GitLens, TODO-Tree önerileri
-- [x] **T47** — `.vscode/settings.json`: Clang-Format kuralları, build artifact exclude listesi, Raylib IntelliSense yolları (`C:/msys64/mingw64/include`), GLSL dosya ilişkilendirme, Git Bash terminali
-- [x] **T48** — `.vscode/c_cpp_properties.json`: MSYS2 MinGW64 derleyici yolu, Raylib include yolu, C99 standardı, `PLATFORM_DESKTOP` define
-- [x] **T49** — `.vscode/tasks.json`: `make` (default build, Ctrl+Shift+B), `make clean`, `make run`, `Rebuild (clean+build)` görevleri + gcc problem matcher
-- [x] **T50** — `.vscode/launch.json`: F5 → GDB debug (`game.exe`), `preLaunchTask: "Build: make"`, pretty-printing, debug'suz çalıştır konfigürasyonu
-- [x] **T51** — `CLAUDE.md` güncellendi: Çok dosyalı mimari (`homecity`, `siege`, `dungeon`), VS Code kısayolları, modül bağımlılıkları, kod kuralları eklendi
+## AŞAMA 10 — VS Code Game Studio Ortamı
+- [x] **T46** — `.vscode/extensions.json`
+- [x] **T47** — `.vscode/settings.json`
+- [x] **T48** — `.vscode/c_cpp_properties.json`
+- [x] **T49** — `.vscode/tasks.json`
+- [x] **T50** — `.vscode/launch.json`
+- [x] **T51** — `CLAUDE.md` güncelleme
 
 ---
 
-## AŞAMA 11 — TD-RPG-STRATEGY HYBRID (Genişletme Planı)
-- [x] **T41** — **Home City & Reinforcement:** `homecity.h/c` modüllerini oluştur. Medeniyet Seviyesi (CivLevel), Sevkiyat Puanı (ShipmentPoints), Refah Puanı (Prosperity) sistemini entegre et. Kart/menü UI ile takviye (Archers, Wood, Tech Upgrade) sistemini kodla.
-- [x] **T42** — **Isometric View & Siege Mechanics:** Koordinat sistemini izometrik matrise çevir. `GetIsometricMousePos()` fonksiyonunu ekle. Dev sur yapılarını (Wall Segment) çizim/harita algoritmalarına entegre et. Unit Stations (Archer/Cannon sur üstü, Cavalry sur arkası) yerleştirme mantığını kur. "Kıta" (Horde/Battalion) tabanlı düşman mantığını kodla.
-- [x] **T43** — **Base Building (Waves Interval):** `PREP_PHASE` durumu ekle. Haritaya Barracks, Market, Barricade gibi binaların inşa edilmesini sağlayan UI ve yerleştirme sistemini yap.
-- [x] **T44** — **Dungeon Mode (RPG/Farming):** `STATE_DUNGEON` durumunu ekle. Hero'nun (WASD/Mouse ile) serbest hareket ettiği, Dungeon düşmanlarının spawn olduğu mantığı yaz. Loot düşürme (Pot, Rune, Gear) ve Envanter entegrasyonunu yap.
-- [x] **T45** — **Data Flow & Documentation:** Veri akış diyagramlarını oluştur/belgele, teknik entegrasyonların sorunsuz çalıştığını (Home City → TD Map → Dungeon arası geçişler) doğrula ve test et.
+## ⚠️ AŞAMA 11 — MİMARİ REFAKTÖR `[RISK: MED]`
+> **Bu aşama Aşama 16'dan ÖNCE tamamlanmalıdır.** Tek `main.c` ile homecity/dungeon/network gibi sistemleri yönetmek imkansıza yakın. Borç birikmesin.
+
+- [x] **T52** — **Modülerleştirme:** Tek `main.c`'yi parçala. Hedef yapı:
+  - `src/main.c` (sadece game loop + state switch)
+  - `src/map.c/h` `src/enemy.c/h` `src/tower.c/h` `src/projectile.c/h`
+  - `src/particle.c/h` `src/wave.c/h` `src/hud.c/h`
+  - `src/input.c/h` `src/util.c/h` (vec math, RNG)
+- [x] **T53** — **Nesne Havuzu (Object Pooling):** Mermi, partikül, düşman, floating-text için statik diziler + `isActive` bayrağı. `malloc/free` yasak.
+- [x] **T54** — **Tip ortak başlığı (`types.h`):** Tüm `enum` ve struct'ları tek yerden include edilebilir kıl. Forward declaration disiplini.
+- [ ] **T55** — **🎮 PLAYTEST-1:** Refaktör sonrası tüm Aşama 1–9 fonksiyonu regresyonsuz çalışıyor mu? Kabul kriteri: 60 FPS'de 200 düşman + 50 kule + 300 mermi.
 
 ---
 
-## AŞAMA 12 — HERO RPG SİSTEMİ (guidance.md §3)
+## 🆕 AŞAMA 12 — ALTYAPI: Save / Settings / Lokalizasyon `[RISK: MED]`
+> Bu aşama **Hero RPG ve Co-op için ön koşul**. Erkene çekildi (eski T87 regresyon, T101 multiplayer karakter taşıma bunu zaten gerektiriyor).
 
-- [x] **T52** — **Hero Sınıf Seçimi:** Menüye Warrior/Mage/Archer seçim ekranı ekle. `HeroClass` enum + sınıfa göre başlangıç stat tablosu (HP/Mana/Atk/Def/Speed). Seçim ana menüden LOADING'e geçişte kalıcı olsun.
-- [x] **T53** — **Gelişmiş Hero Struct:** Mevcut `Hero`'yu genişlet: `HeroClass`, `HeroState`, `HeroStats` (base + current), XP/Level sistemi (`AddXP`, `xpToNext`), `comboCount/comboTimer`, `invulnTimer`, `bodyAngle`, animasyon alanları.
-- [x] **T54** — **Skill Sistemi (Q/W/E/R):** `Skill` struct tanımla. Her sınıf için 4 aktif + 2 pasif skill. Q/W/E/R ile kullanım, mana kontrolü, cooldown, AoE/single-target ayrımı. Skill cooldown overlay HUD'da göster.
-- [x] **T55** — **Boss Sistemi:** `Boss` struct + `BossPhase` + `BossState` state machine. Her 10 dalgada boss wave. 3 faz geçişi (HP %60/%25). Özel saldırılar (radyal mermi, meteor, minion çağırma). Boss HP bar + nabız/glow çizimi.
+- [x] **T56** — **Save/Load Sistemi:** `fwrite`/`fread` ile slot tabanlı kayıt (3 slot). `Game` struct'ı pointer-free; pointer yerine pool indeksleri kullan. Versiyonlama header'ı (magic + version).
+- [x] **T57** — **Ayarlar Menüsü:** Çözünürlük, fullscreen, master/SFX/music ses seviyeleri. `settings.ini` dosyası.
+- [ ] **T58** — **Key Rebinding:** Tüm input'lar `keymap[]` üzerinden okunsun. Ayarlar menüsünden değiştirilebilsin.
+- [ ] **T59** — **Lokalizasyon altyapısı:** `strings_tr.txt` + `strings_en.txt`. Her UI metni `T("KEY")` makrosundan geçsin. Eski hardcoded string yasak.
+- [x] **T60** — **Logger:** `LOG_INFO`, `LOG_WARN`, `LOG_ERR` makroları. Dosyaya + stdout'a yaz.
+- [ ] **T61** — **🎮 PLAYTEST-2:** Save→Quit→Load döngüsü, dil değiştirme, key rebind. Hiçbir ayar kaybolmamalı.
 
-## AŞAMA 13 — GÖRSEL EFEKTLERİN GELİŞTİRİLMESİ (guidance.md §8)
+---
 
-- [x] **T56** — **ScreenShake Sistemi:** `ScreenShake` struct. `intensity/decay/offset`. Boss faz geçişi, büyük patlama, level up tetikleyicileri. `BeginDrawing` öncesi kamera offset'e uygula.
-- [x] **T57** — **Floating Damage Numbers:** `FloatingText` struct (MAX 40). Hasar, kritik, iyileşme sayıları yukarı kayarak solar. Kritik → sarı + büyük font + "!". Tower'dan ve Hero'dan tetiklenir.
-- [x] **T58** — **Mermi Trail Efekti:** `Projectile` struct'a `trailPositions[8]` + `trailIndex` ekle. Her frame geçmiş pozisyon kaydet. Azalan opaklık ve boyutla kuyruk çiz.
+## AŞAMA 13 — Hero RPG Sistemi
+- [x] **T62** — Hero Sınıf Seçimi (Warrior/Mage/Archer)
+- [x] **T63** — Gelişmiş Hero Struct (HeroState, HeroStats, XP/Level, combo, invuln, bodyAngle)
+- [x] **T64** — **Skill Sistemi (Q/W/E/R):** Her sınıf 4 aktif skill. Mana, cooldown, AoE/single. Alt HUD overlay. → T62
+- [x] **T65** — **Boss Sistemi:** isBoss/bossPhase Enemy'de. Her 10 dalgada boss. 3 faz (HP %60/%25). Radyal mermi, meteor, minion. Boss HP bar + nabız.
 
-## AŞAMA 14 — GAMEPLAY DERİNLİĞİ (guidance.md §9, §7, §4)
+---
 
-- [x] **T59** — **Kule Sinerji Sistemi:** Kule yerleştirilirken 120px içindeki diğer kuleleri tara. Tip çiftlerine göre bonus uygula (BASIC+BASIC → +15% atış hızı vb.). Sinerji çiftleri arası soluk mavi çizgi çiz.
-- [x] **T60** — **Harita Etkileşimleri:** `Interactable` struct + `InteractableType` enum. Hazine sandığı, sunak, iyileştirme kuyusu. Hero yaklaştığında tooltip, E ile etkileşim. Haritaya sabit konumlarda yerleştir.
-- [x] **T61** — **Gelişmiş Envanter UI:** Mevcut `Inventory`'yi 12 slot grid'e yükselt. `Item` struct (tip, adet, hotkey). `I` tuşu ile panel aç/kapat. Shift+1-6 hızlı kullanım. Slot tooltip.
+## AŞAMA 14 — Görsel Efektler
+- [x] **T66** — ScreenShake (toggle erişilebilirlik için **T108**'de eklenecek)
+- [x] **T67** — Floating Damage Numbers
+- [x] **T68** — Mermi Trail Efekti
 
-## AŞAMA 15 — GENİŞLETİLMİŞ İÇERİK (guidance.md §13, §10, §12)
+---
 
-- [x] **T62** — **20 Dalga Sistemi + Boss Dalgaları:** `InitWaves`'i 20 dalgaya genişlet (guidance §13.2 tablosu). Dalga 10 ve 20'de boss wave flag. `isBossWave`, `enemyHpMultiplier`, `waveName` alanlarını Wave struct'a ekle.
-- [x] **T63** — **Kamera Sistemi:** `GameCamera` struct. Raylib `Camera2D`. Scroll ile zoom (0.5×–2.0×). H tuşu hero takip toggle. Tüm oyun çizimi `BeginMode2D/EndMode2D` içine al.
-- [x] **T64** — **Ses Sistemi Stub:** `AudioManager` struct. `InitAudioDevice()`, `SFXType` enum. Ses dosyası yoksa sessiz devam et. Kule atış, ölüm, level up, dalga başlangıcı hookları.
+## AŞAMA 15 — Kamera + Ses (eskiden 15-16'daydı, erkene alındı)
+> **Bağımlılık düzeltmesi:** Kamera, T80 (izometrik) tarafından gerekli. Ses, durum ekranlarından beri eksikti.
 
-## Durum Özeti (Aşamalar 12-15)
+- [x] **T69** — **Kamera Sistemi:** `GameCamera` (Camera2D). Scroll zoom (0.5×–2.0×). H tuşu hero takip. Tüm çizim `BeginMode2D/EndMode2D` içine.
+- [x] **T70** — **Ses Sistemi:** `AudioManager`, `InitAudioDevice()`, `SFXType` enum. Eksik dosyada sessiz devam. Tüm hooks: kule atış, ölüm, level up, dalga başlangıcı, hero damage, UI click.
 
-| Aşama                        | Toplam | Tamamlanan |
-|------------------------------|--------|------------|
-| 12 — Hero RPG Sistemi        | 4      | 4          |
-| 13 — Görsel Efektler         | 3      | 3          |
-| 14 — Gameplay Derinliği      | 3      | 3          |
-| 15 — Genişletilmiş İçerik    | 3      | 3          |
-| **Toplam (yeni)**            | **13** | **13**     |
+---
 
-## AŞAMA 16 — RTS MEKANİKLERİ, KAMERA & FOG OF WAR (UI_DESIGN.md)
+## AŞAMA 16 — TD-RPG-Strategy Hybrid `[RISK: HIGH]`
+> Bu aşamadan itibaren oyun gerçek bir hibrit hal alır. **Aşama 11 refaktörü tamamlanmadan başlama.**
 
-- [x] **T65** — **RTS Seçim Kutusu:** Sol tık sürükleme ile dikdörtgen seçim kutusu. Kutu içindeki dost birimler `selected = true`. Seçili birimlere beyaz halka.
-- [x] **T66** — **ESC ile Kule/Bina İptali:** ESC önce kule/bina seçimini iptal eder, yoksa duraklatır. 1/2/3 kule, 4/5/6 bina seçimi.
-- [x] **T67** — **Kırsal Alan Binaları:** `CELL_RURAL` hücre tipi. Kışla/Pazar/Town Center binaları 4/5/6 tuşlarıyla rural alanlara kurulabilir.
-- [x] **T68** — **Büyük Harita + Köy:** 120×80 grid (CELL_SIZE=12). S-kıvrımlı uzun yol, sonunda 6×6 köy bloğu. `CELL_VILLAGE` hücre tipi + mini ev çizimi.
-- [x] **T69** — **Yakın Kamera + WASD Pan:** Default zoom 1.8×, min 1.2× max 3.0×. WASD ve kenar kaydırma ile pan. Harita sınır kontrolü.
-- [x] **T70** — **Minimap + Fog of War:** Sol alt 200×130px minimap, kamera viewport çerçevesi. Fog: kule/birim/hero etrafı aydınlık, geri kalan karanlık. Fogdaki düşmanlar çizilmez ve vurulamaz.
+- [x] **T71** — Home City & Reinforcement (`homecity.c/h`, CivLevel, ShipmentPoints, Prosperity)
+- [x] **T72** — Isometric View & Siege Mechanics (Wall Segment, Position Slots, Horde mantığı)
+- [x] **T73** — Base Building (`PREP_PHASE`, Barracks, Market, Barricade)
+- [x] **T74** — Dungeon Mode RPG (`STATE_DUNGEON`, hero free-move, loot drop, envanter)
+- [x] **T75** — Data Flow & Documentation
+- [ ] **T76** — **🎮 PLAYTEST-3:** Home City → TD Map → Dungeon geçişleri kayıpsız çalışıyor mu?
 
-| Aşama                          | Toplam | Tamamlanan |
-|--------------------------------|--------|------------|
-| 16 — RTS/Kamera/Fog            | 6      | 6          |
+---
 
+# 🔷 MVP-PLUS (1.1 sürümü)
+
+## AŞAMA 17 — Gameplay Derinliği
+- [x] **T77** — **Kule Sinerji Sistemi:** 120px taraması. ⚠️ **Tasarım kararı eksik** — sinerji çiftleri tablosu için `LORE.md`'ye bak ya da bu görevi belge tamamlanana kadar bekleme moduna al.
+- [x] **T78** — **Harita Etkileşimleri:** `Interactable` struct + enum (sandık, sunak, kuyu). Hero yaklaşınca tooltip + E. (dungeon.c'de implemente)
+- [x] **T79** — **Gelişmiş Envanter UI:** 12 slot grid, `Item` struct, I tuşu, Shift+1-6 hızlı kullanım, slot tooltip. (dungeon.c'de implemente)
+
+## AŞAMA 18 — Dalga & İçerik Genişletme
+- [x] **T80** — 20 Dalga Sistemi + Boss Dalgaları
+- [x] **T81** — *(eski T63, kameraya taşındı)* — `T69` ile birleşti
+- [x] **T82** — *(eski T64, sese taşındı)* — `T70` ile birleşti
+
+## AŞAMA 19 — Otonom Şehir ve Ekonomi
+- [ ] **T83** — **Köylü FSM ve Outposts:** IDLE → MOVE_TO_NODE → BUILD_CAMP → GATHERING → TRANSPORT_TO_TOWN. Surdışı kamplar savunmasız.
+- [ ] **T84** — **Kademeli Sur Sistemi:** Prosperity eşikleri T1(odun)→T2(taş)→T3(güçlendirilmiş). `PositionSlot[]` snap, range/dmg bonus.
+- [ ] **T85** — **Auto-Train & Patrol:** Askeri binalara toggle. Üretilen birim `FUNIT_PATROL` → Rally Point.
+- [ ] **T86** — **Manager Mimarisi:** `EconomyManager`, `BuildingManager`, `UnitManager`. Tick-rate optimizasyonu (AI 4-5 Hz). → T52
+- [ ] **T87** — **Global Terrain (Perlin/Simplex):** Çamur (-%30 hız), Uzun Ot (gizlenme), Taşlık (+zırh).
+
+## AŞAMA 20 — Loot & Ekipman Sistemi
+- [ ] **T88** — **Kaynak Muhafızları:** Tarafsız muhafız canavarlar. Kaynak değerine göre seviye. Pending Loot.
+- [ ] **T89** — **End-Level Loot Chest:** Sandık animasyonu + nadirlik renkleriyle liste.
+- [ ] **T90** — **Detaylı Tooltip:** Görsel, isim, nadirlik, statlar, flavor. → T59 (i18n)
+- [ ] **T91** — **Hero Ekipman Slotları + Drag&Drop:** Paperdoll (Weapon/Armor/Head/Accessory). Stat anında yansır.
+
+## AŞAMA 21 — Demircilik ve Yükseltme `[RISK: MED]`
+- [ ] **T92** — **Nadirlik (Rarity) Sistemi:** Common/Uncommon/Rare/Epic/Mythical. `flavorText` alanı. → LORE.md
+- [ ] **T93** — **Blacksmith Binası + NPC:** `BUILDING_BLACKSMITH`. Forge UI. NPC karakter ve replikleri için → LORE.md.
+- [ ] **T94** — **Eşya Yükseltme +1/+2/+3:** Demir Cevheri, Büyülü Toz. +3'e %100, +4'ten sonra RNG. Başarısızlıkta -1, kırılma yok. Glow efekti.
+- [ ] **T95** — **Grand Forge (Home City):** Boss core'larından "Mythical" üretim.
+
+---
+
+# 🟣 POST-MVP (1.2+ sürümleri)
+
+## AŞAMA 22 — Görevler ve Director AI
+- [ ] **T96** — **Weighted Loot Tables:** Her düşman + Boss için `dropChance` + `dropWeight`.
+- [ ] **T97** — **QuestManager:** Dinamik yan görevler. Senaryolar için → LORE.md.
+- [ ] **T98** — **Director AI:** Performans takibi (can/altın/temizleme süresi). Flawless oynayana Elite düşmanlar.
+- [ ] **T99** — **Cursed Loot:** Çift taraflı eşyalar. Vignette/aura efekti. **Bağımlılık:** T98 olmadan etkisiz, → T98.
+
+## AŞAMA 23 — Yaşayan Evren
+- [ ] **T100** — **Living Time:** Sürekli zaman akışı + Day/Night cycle.
+- [ ] **T101** — **Diegetic UI:** Dungeon Entrance binası, Courier Post (atlı ulak).
+- [ ] **T102** — **Background Defense Sim:** Kümülatif `totalTowerDPS`/`totalSoldierCount`. 10s snapshot. Snap-back. Kritik uyarı.
+- [ ] **T103** — **İzometrik Zindanlar:** Top-down → İzometrik. Özel canavar yetenekleri (ışınlanma, zehir bulutu, skill blok).
+
+## AŞAMA 24 — Derin Hero Mekanikleri
+- [ ] **T104** — **Mage Element Dokuması:** 3 slotlu kuyruğa Q/W/E ekle, R çağır. 10 büyü kombinasyonu. → T64
+- [ ] **T105** — **Warrior Öfke & Cleave:** Koni AoE (%50 sekme). Aura + müttefik defense buff.
+- [ ] **T106** — **Archer Wind Run + Pin Arrows:** %100 evasion, no-collision. Pin → arkadaki cisme it + 3s stun.
+- [ ] **T107** — **Tavern & Mercenaries:** Otonom yoldaş kiralama. FSM (PATROL/ENGAGE/HEAL).
+- [ ] **T108** — **Smart Enemies:** Behavior Tree. Tünelci (burrow), Kalkanlı Şaman (mermi yansıtma), Sabotör (stealth → ekonomi binaları).
+
+## AŞAMA 25 — Müttefik ve Şehitlik
+- [ ] **T109** — **Ally Requisitions:** Talep bildirimi, Accept/Reject.
+- [ ] **T110** — **Dynamic Graveyards:** Cause-of-death log + tombstone tooltip.
+- [ ] **T111** — **Fallen Soldiers Monument:** `fallenSoldiersCount` global. Bölgesel tooltip.
+
+## AŞAMA 26 — Lore Entegrasyonu
+> Bu görevler `LORE.md` ile sıkı koordine.
+- [ ] **T112** — **Lore Scrolls:** Toplanabilir parşömenler. Metinler için → LORE.md.
+- [ ] **T113** — **Fog of War Dungeon Discovery:** Zindan kapısını fiziksel keşif şart.
+- [ ] **T114** — **Regional Bosses:** Orman/Çöl/Dağ özel boss + Liberation flag.
+- [ ] **T115** — **Time Loop / Regression `[RISK: HIGH]`:** Hero ölünce Shrine of Time. 10 gün geri. Stats + envanter korunur. → T56 (save serialization).
+
+---
+
+# 🟢 POLISH (1.3 — 1.0 öncesi son cila)
+
+## AŞAMA 27 — Polish & QoL
+- [ ] **T116** — **Tutorial / Onboarding:** İlk oyunda interaktif rehber. 5-7 adım. Skip butonu.
+- [ ] **T117** — **Erişilebilirlik:** Renk körü modu (3 preset), font scale, **screen shake toggle**, kritik metinler için kalın font.
+- [ ] **T118** — **Performance Profiler:** Frame time, draw call, aktif entity sayacı. F3 ile aç.
+- [ ] **T119** — **Crowd Control Çeşitliliği:** slow/stun mevcut. Knockback, fear, silence, root ekle.
+- [ ] **T120** — **🎮 PLAYTEST-FINAL:** Tutorial → 20 dalga → Boss → Dungeon → Victory. Fresh user testleri.
+
+---
+
+# 🔮 DLC / FUTURE
+
+## AŞAMA 28 — Co-op Multiplayer `[RISK: HIGH]` `[POST-LAUNCH]`
+> **Tek başına 3-6 ay iş.** Singleplayer 1.0 çıkmadan başlama. Ayrı feature branch.
+
+- [ ] **T121** — Listen Server (ENet), karakter taşıma (JSON), 5 oyuncu lobi. → T56
+- [ ] **T122** — State Prediction + Interpolation + Delta Compression.
+- [ ] **T123** — Blueprint + Host Onay Mekanizması. `PendingBuildings[]`. Pathfinding bypass.
+- [ ] **T124** — Dynamic Difficulty (`ActivePlayerCount` çarpanları), Aggro algoritması.
+- [ ] **T125** — **Anti-cheat + Reconnection + Voice Ping/Quick Chat.** (Bu görev eski plana ek olarak eklendi.)
+
+---
+
+# 📌 KESİLEN / ERTELENEN ÖĞELER
+
+| Eski ID | Görev | Karar | Sebep |
+|---|---|---|---|
+| T82 (eski) | Void Rifts | **T98 sonrasına ertelendi** | Director AI olmadan anlamsız |
+| T99 (eski) | Çoklu Son / Ahlaki Seçim | **Lore'a taşındı** (`LORE.md` §Endings) | Tasarım kararı, kod görevi değil |
+| T96-T98 (eski) | Lore detayları | **Lore'a taşındı** | Bunlar yazım, kod değil |
+| T59 (eski) | Kule Sinerji çiftleri | **Tasarım dokümanına taşındı** | Tablo eksikti |
+
+---
+
+# 🔗 BAĞIMLILIK GRAFİĞİ (özet)
+
+```
+T52-T55 (Refaktör)  ─┬─→ T56-T61 (Altyapı) ─┬─→ T62-T65 (Hero RPG)
+                     │                       └─→ T71-T76 (Hybrid)
+                     └─→ T86 (Manager)        ↓
+                                              T77-T95 (MVP-Plus)
+                                              ↓
+T56 (Save) ─────────────────────────→ T115 (Time Loop) + T121 (Multiplayer)
+T98 (Director) ──────────────────────→ T99 (Cursed Loot)
+T64 (Skills) ────────────────────────→ T104-T106 (Hero revamp)
+T70 (Audio) ─────────────────────────→ T119 (CC çeşitliliği)
+```
