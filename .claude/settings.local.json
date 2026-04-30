@@ -77,7 +77,9 @@
       "Bash(C:/msys64/mingw64/bin/gcc.exe -std=c99 -Wall -O2 -IC:/msys64/mingw64/include src/audio.c src/dungeon.c src/enemy.c src/homecity.c src/hud.c src/input.c src/logger.c src/main.c src/map.c src/particle.c src/projectile.c src/save.c src/settings.c src/siege.c src/tower.c src/ui.c src/util.c src/wave.c -LC:/msys64/mingw64/lib -lraylib -lopengl32 -lgdi32 -lwinmm -o release/game2.exe)",
       "Bash(grep -v '^$')",
       "PowerShell(cd C:\\\\Users\\\\ali.erdogan\\\\Documents\\\\TD_Test; $p = Start-Process -FilePath \"C:\\\\msys64\\\\mingw64\\\\bin\\\\gcc.exe\" -ArgumentList \"-std=c99 -Wall -O2 -pipe -IC:\\\\msys64\\\\mingw64\\\\include src/audio.c src/dungeon.c src/enemy.c src/guardian.c src/homecity.c src/hud.c src/i18n.c src/input.c src/logger.c src/main.c src/manager.c src/map.c src/particle.c src/projectile.c src/rarity.c src/save.c src/settings.c src/siege.c src/tower.c src/ui.c src/util.c src/wave.c -LC:\\\\msys64\\\\mingw64\\\\lib -lraylib -lopengl32 -lgdi32 -lwinmm -o release/game.exe\" -Wait -NoNewWindow -RedirectStandardError \"C:\\\\Users\\\\ali.erdogan\\\\Documents\\\\TD_Test\\\\build_errors.txt\" -RedirectStandardOutput \"C:\\\\Users\\\\ali.erdogan\\\\Documents\\\\TD_Test\\\\build_out.txt\" -PassThru; Write-Output \"ExitCode: $\\($p.ExitCode\\)\")",
-      "PowerShell(& C:\\\\msys64\\\\usr\\\\bin\\\\bash.exe \"C:/Users/ali.erdogan/Documents/TD_Test/build_tmp/compile_hud.sh\")"
+      "PowerShell(& C:\\\\msys64\\\\usr\\\\bin\\\\bash.exe \"C:/Users/ali.erdogan/Documents/TD_Test/build_tmp/compile_hud.sh\")",
+      "Bash(TEMP=/tmp TMP=/tmp /usr/bin/make OS=Windows_NT)",
+      "Bash(C:/msys64/mingw64/bin/gcc.exe -std=c99 -Wall -O2 -pipe -IC:/msys64/mingw64/include src/audio.c src/dungeon.c src/enemy.c src/guardian.c src/homecity.c src/hud.c src/i18n.c src/input.c src/logger.c src/loot_table.c src/main.c src/manager.c src/map.c src/particle.c src/projectile.c src/rarity.c src/save.c src/settings.c src/siege.c src/tower.c src/ui.c src/util.c src/wave.c -LC:/msys64/mingw64/lib -lraylib -lopengl32 -lgdi32 -lwinmm -o release/game.exe)"
     ]
   }
 }
