@@ -34,7 +34,8 @@
 | **Post-MVP** | 26 (Lore Entegrasyonu) | 4 | 0 |
 | **Polish** | 27 (Tutorial / Erişilebilirlik / Perf) | 5 | 0 |
 | **DLC/Future** | 28 (Co-op Multiplayer) | 5 | 0 |
-| **TOTAL** | | **123** | **77** |
+| **Fix/Polish** | 29 (Gameplay Akışı & Görsel) | 7 | 0 |
+| **TOTAL** | | **130** | **77** |
 
 ---
 
@@ -253,6 +254,20 @@
 - [ ] **T118** — **Performance Profiler:** Frame time, draw call, aktif entity sayacı. F3 ile aç.
 - [ ] **T119** — **Crowd Control Çeşitliliği:** slow/stun mevcut. Knockback, fear, silence, root ekle.
 - [ ] **T120** — **🎮 PLAYTEST-FINAL:** Tutorial → 20 dalga → Boss → Dungeon → Victory. Fresh user testleri.
+
+---
+
+## AŞAMA 29 — Gameplay Akışı & Görsel Düzeltmeler `[RISK: LOW–MED]`
+
+> Oynanış sırasında tespit edilen sorunlar ve UX iyileştirmeleri.
+
+- [ ] **T126** — **Wave Akışı — Kesintisiz Oyun:** Dalga bitince gelen "dungeon'a gir?" sorusunu ve `STATE_WAVE_CLEAR` duraklamasını kaldır. Dalga biter → prep fazı otomatik başlar (sabit süre) → süre dolunca yeni dalga otomatik gelir. Oyun hiç durmadan akar. `[RISK: LOW]`
+- [ ] **T127** — **Diegetic Dungeon Girişi:** `KEY_D` ile doğrudan dungeon girişini kaldır. Hero TD haritasında Zindan Kapısı portalına (T101) belirli mesafeye gelince ekranda `[E] Zindan'a Gir` tooltip'i çıksın; E tuşuyla giriş yapılsın. → T101 `[RISK: LOW]`
+- [ ] **T128** — **Köy Bina Alanı + Görsel Placeholder:** Kisla / Pazar / Market / Blacksmith yalnizca `CELL_VILLAGE` hücrelerine yerleştirilebilsin. Köy alanini (CELL_VILLAGE hücre blogu) genislet. Her bina türü için placeholder görsel: çerçeveli dikdörtgen + büyük sembol (K/P/M/D) + renkli çati sekli. Bina koyulunca haritada görünür degisiklik olmali. `[RISK: MED]`
+- [ ] **T129** — **Dinamik HUD Sag Panel:** Seçime göre içerik degissin: Hero seçiliyken sinif adi + HP/Mana bar + ATK/DEF/Speed + 4 skill CD göstergesi. Kule seçiliyse kule tipi + DPS + menzil + seviye + satis fiyati. Hicbiri seçili degilse yerlestirilebilir bina listesi. `[RISK: LOW]`
+- [ ] **T130** — **Kule Görsel/Collision Hizalama:** Kule çizim yaricapi ile `CanPlaceTower` çakisma kontrolü uyuşsun. Her kule için `visualRadius` (çizim) ve `collisionRadius` (yerleştirme/minimum mesafe) ayri sabit. Yan yana kuleler görsel olarak iç içe girmemeli. `[RISK: MED]`
+- [ ] **T131** — **Kule Hasar & Tamir:** Boss ve minyon saldiriları yakin kulelere hasar versin. Kule struct'ina `hp`/`maxHp` ekle. HP %75 alti sari çerçeve, %40 alti kirmizi çerçeve + hasarli görsel, %0'da `disabled` (ates etmez). Prep fazinda `[R]` ile seçili kuleyi tamir et (maliyet: `upgradeCost / 2` altin). `[RISK: MED]`
+- [ ] **T132** — **Boss Dalgasinda Kule Yerleştirme:** Boss wave aktifken yeni kule yerleştirmeyi engelleyen kisitlamayi kaldir. `HandleInput` veya `CanPlaceTower` içinde boss'a özel blok varsa temizle; kule yerleştirme boss fight süresince serbest olmali. `[RISK: LOW]`
 
 ---
 
