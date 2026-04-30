@@ -15,6 +15,7 @@
 #include "projectile.h"
 #include "director.h"
 #include "quest.h"
+#include "defsim.h"
 #include "tower.h"
 #include "types.h"
 #include "ui.h"
@@ -57,6 +58,28 @@ void DrawLoading(Game *g);
 void DrawLevelComplete(Game *g);
 void DrawPrepPhase(Game *g);
 void DrawClassSelect(Game *g);
+
+/* T101 — Ulak birimlerini waypoint zinciri boyunca ilerlet */
+static void UpdateCourierUnits(Game *g, float dt) {
+    for (int i = 0; i < MAX_COURIER_UNITS; i++) {
+        CourierUnit *cu = &g->courierUnits[i];
+        if (!cu->active) continue;
+        cu->lifetime += dt;
+        if (cu->lifetime > 12.0f) { cu->active = false; continue; }
+
+        float dx = cu->destination.x - cu->position.x;
+        float dy = cu->destination.y - cu->position.y;
+        float dist = sqrtf(dx * dx + dy * dy);
+        if (dist < 6.0f) {
+            cu->active = false; /* hedefe ulaştı */
+            continue;
+        }
+        cu->angle = atan2f(dy, dx);
+        float step = cu->speed * dt;
+        cu->position.x += (dx / dist) * step;
+        cu->position.y += (dy / dist) * step;
+    }
+}
 
 void InitLevels(Game *g) {
 
@@ -331,6 +354,15 @@ void InitGame(Game *g) {
     /* T94 — Başlangıç malzemeleri */
     g->ironOre   = 5;
     g->magicDust = 2;
+    /* T101 — Dungeon Entrance: son waypoint yanına yerleştir */
+    if (g->waypointCount > 0)
+        g->dungeonEntrancePos = g->waypoints[g->waypointCount - 1];
+    else
+        g->dungeonEntrancePos = (Vector2){1100, 360};
+    g->dungeonEntranceBuilt = true;
+    /* T102 — DefSim: ilk snapshot al */
+    memset(&g->defSim, 0, sizeof(g->defSim));
+    g->defSim.snapshotTimer = 0.0f;
 }
 
 /* ============================================================
@@ -924,6 +956,8 @@ void UpdateMenu(Game * g) {
             if (IsKeyPressed(KEY_D)) {
                 g->preDungeonState = STATE_PREP_PHASE;
                 InitDungeon(&g->dungeon, &g->hero);
+                DefSimTakeSnapshot(g); /* T102 */
+                DefSimSpawnCourier(g, "ZINDAN"); /* T101 */
                 g->state = STATE_DUNGEON;
                 return;
             }
@@ -961,20 +995,31 @@ void UpdateMenu(Game * g) {
 
             /* Bina seçim paneli */
             const char *labels[BUILDING_TYPE_COUNT] = {
-                "[4] Kışla  (+40 Altin/dalga, ücretsiz)",
+                "[4] Kisla  (+40 Altin/dalga, ucretsiz)",
                 "[5] Pazar  (-maliyet, 30 Altin)",
-                "[6] Barikat  (Düsman yavaşlatır)",
+                "[6] Barikat  (Dusman yavaslatir)",
                 "[--] Kasaba Merkezi",
-                "[7] Demirci  (Eşya yükseltme, 80 Altin)"
+                "[7] Demirci  (Esya yukseltme, 80 Altin)",
+                "[--] Zindan Kapisi  (Otomatik)",
+                "[--] Ulak Postasi  (Otomatik)"
             };
-            Color sel_colors[BUILDING_TYPE_COUNT] = {GREEN, SKYBLUE, ORANGE, GOLD, (Color){255, 120, 40, 255}};
-            /* BUILDING_TOWN_CENTER kullanıcı seçimi yok, atla */
+            Color sel_colors[BUILDING_TYPE_COUNT] = {
+                GREEN, SKYBLUE, ORANGE, GOLD,
+                (Color){255, 120, 40, 255},
+                (Color){160, 80, 255, 255},
+                (Color){255, 220, 80, 255}
+            };
+            /* BUILDING_TOWN_CENTER, DUNGEON_ENTRANCE, COURIER_POST kullanici secimi yok, atla */
             for (int i = 0; i < BUILDING_TYPE_COUNT; i++) {
                 if (i == BUILDING_TOWN_CENTER) continue;
+                if (i == BUILDING_DUNGEON_ENTRANCE) continue;
+                if (i == BUILDING_COURIER_POST) continue;
                 Color bg = (g->selectedBuilding == (BuildingType)i) ? (Color){60, 80, 60, 200}
                                                                     : (Color){30, 35, 30, 160};
-                /* Dizin: TOWN_CENTER atlandı, görsel sıra düzenle */
-                int drawIdx = (i < BUILDING_TOWN_CENTER) ? i : i - 1;
+                /* Dizin: atlanan tipler (TOWN_CENTER/ENTRANCE/COURIER) dışlanarak sıralanır */
+                int drawIdx = i;
+                if (i > BUILDING_TOWN_CENTER) drawIdx--;
+                /* DUNGEON_ENTRANCE ve COURIER_POST zaten continue ile atlandı */
                 DrawRectangle(20, 110 + drawIdx * 44, 360, 40, bg);
                 DrawRectangleLines(20, 110 + drawIdx * 44, 360, 40, sel_colors[i]);
                 DrawText(labels[i], 30, 121 + drawIdx * 44, 14, sel_colors[i]);
@@ -1064,6 +1109,8 @@ void UpdateMenu(Game * g) {
                     UpdateFogOfWar(&game); /* T70 */
                     UpdateQuestNotify(&game.questManager, dt); /* T97 */
                     UpdateDayCycle(&game.dayCycle, dt);        /* T100 */
+                    UpdateCourierUnits(&game, dt);             /* T101 */
+                    DefSimTakeSnapshot(&game);                 /* T102 — sürekli güncelle */
                     UpdateWaves(&game, dt);
                     UpdateHomeCity(&game.homeCity, dt);
                     HandleGrandForge(&game);
@@ -1097,6 +1144,8 @@ void UpdateMenu(Game * g) {
                     if (IsKeyPressed(KEY_D)) {
                         game.preDungeonState = STATE_WAVE_CLEAR;
                         InitDungeon(&game.dungeon, &game.hero);
+                        DefSimTakeSnapshot(&game); /* T102 — giriş anındaki savunma snapshot */
+                        DefSimSpawnCourier(&game, "ZINDAN"); /* T101 */
                         game.state = STATE_DUNGEON;
                         break;
                     }
@@ -1129,10 +1178,13 @@ void UpdateMenu(Game * g) {
                 case STATE_DUNGEON:
                     UpdateDungeon(&game.dungeon, &game.hero, &game.questManager, dt);
                     UpdateQuestNotify(&game.questManager, dt); /* T97 */
-                    /* ESC: dungeon'dan çık, altın bonus uygula */
+                    UpdateDayCycle(&game.dayCycle, dt);        /* T100 */
+                    DefSimUpdate(&game, dt);                   /* T102 */
+                    /* ESC: dungeon'dan çık, altın bonus + can kayıplarını uygula */
                     if (IsKeyPressed(KEY_ESCAPE)) {
                         game.gold += game.dungeon.inventory.bonusGold;
                         game.dungeon.isDungeonActive = false;
+                        game.defSim.livesLostWhileAway = 0; /* sıfırla */
                         game.state = game.preDungeonState;
                     }
                     break;
@@ -1231,6 +1283,7 @@ void UpdateMenu(Game * g) {
                     DrawDayNightOverlay(&game.dayCycle); /* T100 */
                     DrawQuestHUD(&game.questManager); /* T97 */
                     DrawDayCycleHUD(&game.dayCycle);  /* T100 */
+                    DefSimDrawWarning(&game);          /* T102 — kritik savunma uyarısı */
                     /* T99 — Lanetli eşya vinyette efekti */
                     { bool anyCursed = false;
                       for (int s = 0; s < EQUIP_SLOT_COUNT; s++)

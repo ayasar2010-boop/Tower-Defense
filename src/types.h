@@ -63,6 +63,9 @@
 
 #define MAX_BUILDINGS        10
 #define MAX_OUTPOSTS          5
+#define MAX_COURIER_UNITS     4
+#define DEFSIM_SNAPSHOT_INTERVAL 10.0f
+#define DEFSIM_CRITICAL_LIVES    5
 #define PREP_PHASE_DURATION  25.0f
 #define MAX_GUARDIANS         8
 #define GUARDIAN_AGGRO_RANGE 80.0f
@@ -173,7 +176,10 @@ typedef enum {
 
 typedef enum {
     BUILDING_BARRACKS, BUILDING_MARKET, BUILDING_BARRICADE,
-    BUILDING_TOWN_CENTER, BUILDING_BLACKSMITH, BUILDING_TYPE_COUNT
+    BUILDING_TOWN_CENTER, BUILDING_BLACKSMITH,
+    BUILDING_DUNGEON_ENTRANCE, /* T101 — Zindan Kapısı */
+    BUILDING_COURIER_POST,     /* T101 — Ulak Postası   */
+    BUILDING_TYPE_COUNT
 } BuildingType;
 
 /* ============================================================
@@ -211,6 +217,31 @@ typedef struct {
     float   buildTimer;
     bool    active;
 } Outpost;
+
+/* T101 — Diegetic UI: Ulak birimi (atlı haberci) */
+typedef struct {
+    Vector2     position;
+    Vector2     destination;
+    float       speed;
+    float       angle;
+    float       lifetime;
+    char        message[48];   /* iletilen mesaj (opsiyonel) */
+    Color       color;
+    bool        active;
+} CourierUnit;
+
+/* T102 — Background Defense Sim: Dungeon'dayken savunma durumu */
+typedef struct {
+    float   totalTowerDPS;        /* tüm aktif kulelerin toplam DPS'i */
+    int     totalSoldierCount;    /* aktif asker sayısı */
+    float   snapshotTimer;        /* 10s'de bir güncelle */
+    float   threatLevel;          /* mevcut düşman tehdidi (0–1) */
+    int     livesLostWhileAway;   /* dungeon'dayken kaybedilen can */
+    bool    criticalWarning;      /* savunma kritik eşiğin altında mı */
+    float   critWarnTimer;        /* uyarı animasyon timer */
+    float   lastSnapshotDPS;      /* son snapshot DPS değeri */
+    int     lastSnapshotSoldiers; /* son snapshot asker sayısı */
+} BackgroundDefSim;
 
 typedef struct {
     Vector2   position;
@@ -543,6 +574,15 @@ typedef struct {
 
     /* T100 — Gün/Gece döngüsü */
     DayCycle dayCycle;
+
+    /* T101 — Diegetic UI: ulak birimleri + zindan kapısı konumu */
+    CourierUnit  courierUnits[MAX_COURIER_UNITS];
+    int          courierCount;
+    Vector2      dungeonEntrancePos; /* dünya koordinatı */
+    bool         dungeonEntranceBuilt;
+
+    /* T102 — Background Defense Simulation */
+    BackgroundDefSim defSim;
 } Game;
 
 /* ============================================================

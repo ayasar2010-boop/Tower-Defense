@@ -28,7 +28,7 @@
 | **MVP-Plus** | 20 (Loot & Ekipman) | 4 | 4 |
 | **MVP-Plus** | 21 (Demircilik) | 4 | 1 |
 | **Post-MVP** | 22 (Görevler & Director AI) | 4 | 0 |
-| **Post-MVP** | 23 (Yaşayan Evren) | 4 | 0 |
+| **Post-MVP** | 23 (Yaşayan Evren) | 4 | 2 |
 | **Post-MVP** | 24 (Derin Hero Mekanikleri) | 5 | 0 |
 | **Post-MVP** | 25 (Müttefik & Şehitlik) | 3 | 0 |
 | **Post-MVP** | 26 (Lore Entegrasyonu) | 4 | 0 |
@@ -220,8 +220,8 @@
 
 ## AŞAMA 23 — Yaşayan Evren
 - [x] **T100** — **Living Time:** Sürekli zaman akışı + Day/Night cycle.
-- [ ] **T101** — **Diegetic UI:** Dungeon Entrance binası, Courier Post (atlı ulak).
-- [ ] **T102** — **Background Defense Sim:** Kümülatif `totalTowerDPS`/`totalSoldierCount`. 10s snapshot. Snap-back. Kritik uyarı.
+- [x] **T101** — **Diegetic UI:** Dungeon Entrance binası, Courier Post (atlı ulak).
+- [x] **T102** — **Background Defense Sim:** Kümülatif `totalTowerDPS`/`totalSoldierCount`. 10s snapshot. Snap-back. Kritik uyarı.
 - [ ] **T103** — **İzometrik Zindanlar:** Top-down → İzometrik. Özel canavar yetenekleri (ışınlanma, zehir bulutu, skill blok).
 
 ## AŞAMA 24 — Derin Hero Mekanikleri

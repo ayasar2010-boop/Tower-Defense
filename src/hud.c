@@ -1399,6 +1399,47 @@ void UpdateLevelComplete(Game *g, float dt) {
          * ============================================================ */
 
 
+        /* T101 — Dungeon Entrance kapısı çiz */
+        static void DrawDungeonEntrance(Game *g) {
+            if (!g->dungeonEntranceBuilt) return;
+            Vector2 p = g->dungeonEntrancePos;
+            float t = (float)GetTime();
+            /* Dış hale */
+            float r = 22.0f + sinf(t * 2.2f) * 4.0f;
+            DrawCircleV(p, r, Fade((Color){80, 40, 160, 255}, 0.35f + sinf(t * 2.2f) * 0.15f));
+            /* İç parlayan merkez */
+            DrawCircleV(p, 12.0f, Fade((Color){160, 80, 255, 255}, 0.7f));
+            DrawCircleV(p, 7.0f, (Color){220, 180, 255, 240});
+            /* Çerçeve */
+            DrawCircleLines((int)p.x, (int)p.y, r, (Color){140, 80, 220, 200});
+            /* Etiket */
+            const char *lbl = "ZINDAN";
+            DrawText(lbl, (int)p.x - MeasureText(lbl, 10) / 2, (int)p.y + (int)r + 3, 10,
+                     (Color){200, 160, 255, 220});
+        }
+
+        /* T101 — Ulak birimlerini çiz */
+        static void DrawCourierUnits(Game *g) {
+            for (int i = 0; i < MAX_COURIER_UNITS; i++) {
+                CourierUnit *cu = &g->courierUnits[i];
+                if (!cu->active) continue;
+                /* At gövdesi */
+                DrawCircleV(cu->position, 6.0f, cu->color);
+                /* Hareket yönü oku */
+                Vector2 tip = {cu->position.x + cosf(cu->angle) * 10.0f,
+                               cu->position.y + sinf(cu->angle) * 10.0f};
+                DrawLineV(cu->position, tip, WHITE);
+                /* Mesaj balonu (varsa) */
+                if (cu->message[0] != '\0') {
+                    int tw = MeasureText(cu->message, 10);
+                    DrawRectangle((int)cu->position.x - tw / 2 - 2, (int)cu->position.y - 22,
+                                  tw + 4, 14, (Color){20, 20, 20, 180});
+                    DrawText(cu->message, (int)cu->position.x - tw / 2, (int)cu->position.y - 20,
+                             10, YELLOW);
+                }
+            }
+        }
+
         void DrawGame(Game * g) {
             DrawMap(g);
             DrawPathArrows(g);
@@ -1412,6 +1453,8 @@ void UpdateLevelComplete(Game *g, float dt) {
             DrawProjectiles(g);
             DrawParticles(g);
             DrawFloatingTexts(g);
+            DrawDungeonEntrance(g); /* T101 */
+            DrawCourierUnits(g);    /* T101 */
             DrawFogOverlay(g); /* T70 — Fog en üstte */
 
             /* T65 — Seçim kutusu çizimi (dünya koordinatı) */
